@@ -24,6 +24,7 @@
 #include "AppMain.h"
 #include "AppConfigs.h"
 #include "libTargomanCommon/Configuration/ConfigManager.h"
+#include <iostream>
 
 //#include "Interfaces/API/intfPureModule.h"
 //#include <QCoreApplication>
@@ -33,6 +34,8 @@
 using namespace Targoman::Common;
 
 namespace Targoman::Migrate {
+
+constexpr char _line_splitter[] = "------------------------------------------------------------------------";
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -49,46 +52,50 @@ void AppMain::slotExecute()
 {
     try
     {
-        switch (AppConfigs::Action.value())
+        switch (AppConfigs::Command.value())
         {
-            case enuAppAction::CreateDB:
-                doActionCreateDB();
+            case enuAppCommand::CreateDB:
+                ActionCreateDB();
                 break;
 
-            case enuAppAction::CreateLocal:
-                doActionCreateLocal();
+            case enuAppCommand::CreateDBDiff:
+                ActionCreateDBDiff();
                 break;
 
-            case enuAppAction::List:
-                doActionList();
+            case enuAppCommand::CreateLocal:
+                ActionCreateLocal();
                 break;
 
-            case enuAppAction::History:
-                doActionHistory();
+            case enuAppCommand::List:
+                ActionList();
                 break;
 
-            case enuAppAction::Up:
-                doActionUp();
+            case enuAppCommand::History:
+                ActionHistory();
                 break;
 
-            case enuAppAction::UpTo:
-                doActionUpTo();
+            case enuAppCommand::Up:
+                ActionUp();
                 break;
 
-            case enuAppAction::Down:
-                doActionDown();
+            case enuAppCommand::UpTo:
+                ActionUpTo();
                 break;
 
-//            case enuAppAction::Redo:
-//                doActionRedo();
+//            case enuAppCommand::Down:
+//                ActionDown();
 //                break;
 
-//            case enuAppAction::Fresh:
-//                doActionFresh();
+//            case enuAppCommand::Redo:
+//                ActionRedo();
 //                break;
 
-            case enuAppAction::Mark:
-                doActionMark();
+//            case enuAppCommand::Fresh:
+//                ActionFresh();
+//                break;
+
+            case enuAppCommand::Mark:
+                ActionMark();
                 break;
 
             default:
@@ -109,46 +116,133 @@ void AppMain::slotExecute()
     QCoreApplication::exit(0);
 }
 
-void AppMain::doActionCreateDB()
+void AppMain::ActionCreateDB(bool _showHelp)
 {
+    if (_showHelp)
+    {
+        return;
+    }
+
+    qInfo() << "New global database migration:";
+    qInfo() << _line_splitter;
 }
 
-void AppMain::doActionCreateLocal()
+void AppMain::ActionCreateDBDiff(bool _showHelp)
 {
+    if (_showHelp)
+    {
+        return;
+    }
+
+    qInfo() << "New global database migration by db diff:";
+    qInfo() << _line_splitter;
 }
 
-void AppMain::doActionList()
+void AppMain::ActionCreateLocal(bool _showHelp)
 {
-    qInfo() << "List of not applied migrations:";
+    if (_showHelp)
+    {
+        return;
+    }
+
+    qInfo() << "New local migration:";
+    qInfo() << _line_splitter;
 }
 
-void AppMain::doActionHistory()
+void AppMain::ActionList(bool _showHelp)
 {
-    qInfo() << "List of applied migrations:";
+    if (_showHelp)
+    {
+        qInfo() << "List of unapplied migrations";
+        qInfo() << _line_splitter;
+        qInfo() << "./targomanMigrate" << "List     : showing the first 10 new migrations";
+        qInfo() << "./targomanMigrate" << "List 5   : showing the first 5 new migrations";
+        qInfo() << "./targomanMigrate" << "List all : showing all new migrations";
+        return;
+    }
+
+    qInfo() << "Unapplied migrations:";
+    qInfo() << _line_splitter;
 }
 
-void AppMain::doActionUp()
+void AppMain::ActionHistory(bool _showHelp)
 {
+    if (_showHelp)
+    {
+        qInfo() << "List of applied migrations";
+        qInfo() << _line_splitter;
+        qInfo() << "./targomanMigrate" << "History     : showing the first 10 applied migrations";
+        qInfo() << "./targomanMigrate" << "History 5   : showing the first 5 applied migrations";
+        qInfo() << "./targomanMigrate" << "History all : showing all applied migrations";
+        return;
+    }
+
+    qInfo() << "Applied migrations:";
+    qInfo() << _line_splitter;
 }
 
-void AppMain::doActionUpTo()
+void AppMain::ActionUp(bool _showHelp)
 {
+    if (_showHelp)
+    {
+        return;
+    }
+
+    qInfo() << "Applied migrations:";
+    qInfo() << _line_splitter;
 }
 
-void AppMain::doActionDown()
+void AppMain::ActionUpTo(bool _showHelp)
 {
+    if (_showHelp)
+    {
+        return;
+    }
+
+    qInfo() << "Applied migrations:";
+    qInfo() << _line_splitter;
 }
 
-void AppMain::doActionRedo()
-{
-}
+//void AppMain::ActionDown(bool _showHelp)
+//{
+//    if (_showHelp)
+//    {
+//        return;
+//    }
 
-void AppMain::doActionFresh()
-{
-}
+//    qInfo() << "Rolled back migrations:";
+//    qInfo() << _line_splitter;
+//}
 
-void AppMain::doActionMark()
+//void AppMain::ActionRedo()
+//{
+//}
+
+//void AppMain::ActionFresh()
+//{
+//}
+
+void AppMain::ActionMark(bool _showHelp)
 {
+    if (_showHelp)
+    {
+        qInfo() << "Modifying migration history without actually run migrations";
+        qInfo() << _line_splitter;
+        qInfo() << "./targomanMigrate" << "Mark 20220101_010203                              : add all unapplied migrations upto 20220101_010203";
+        qInfo() << "./targomanMigrate" << "Mark m20220101_010203                             : add all unapplied migrations upto 20220101_010203";
+        qInfo() << "./targomanMigrate" << "Mark m20220101_010203_description_of_migration    : add all unapplied migrations upto 20220101_010203";
+        qInfo() << "./targomanMigrate" << "Mark m20220101_010203_description_of_migration.sh : add all unapplied migrations upto 20220101_010203";
+        return;
+    }
+
+    qInfo() << "Marking migrations as applied:";
+    qInfo() << _line_splitter;
+
+    std::cout << "are you sure? (y/n):";
+    std::string s;
+    std::cin >> s;
+    std::cout << "your answer:" << s;
+    std::cout << std::endl;
 }
 
 } //namespace Targoman::Migrate

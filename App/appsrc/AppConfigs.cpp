@@ -32,10 +32,20 @@ using namespace Targoman::Common::Configuration;
 //QString AppConfigs::BasePathWithVersion;
 //TAPI::stuStatistics gServerStats;
 
-tmplConfigurable<enuAppAction::Type> AppConfigs::Action(
-    AppConfigs::makeConfig("Action"),
-    "Application main action",
-    enuAppAction::List,
+tmplConfigurable<enuAppCommand::Type> AppConfigs::Command(
+    AppConfigs::makeConfig("Command"),
+    R"(Application command:
+                    CreateDB        : Creating new global migration (store in /migrations/db/)
+                    CreateDBDiff    : Creating new global database migration and fills by libTargomanDBCompare (store in /migrations/db/)
+                    CreateLocal     : Creating new local migration (store in /migrations/local/)
+                    List            : List of unapplied migrations
+                    History         : List of applied migrations
+                    Up              : Apply unapplied migrations
+                    UpTo            : Apply unapplied migrations up to specified point
+                    Mark            : Set migrations as applied to the specified point (not actually run migrations)
+)",
+//        Down            : Rollback applied migrations
+    enuAppCommand::List,
     ReturnTrueCrossValidator(),
     "",
     "ACTION",
@@ -43,71 +53,63 @@ tmplConfigurable<enuAppAction::Type> AppConfigs::Action(
     enuConfigSource::Arg
 );
 
-//tmplConfigurable<QString> AppConfigs::ActionCreateDB(
-//    AppConfigs::makeConfig("ActionCreateDB"),
-//    "Create new database migration file",
-//    "",
-//    ReturnTrueCrossValidator(),
-//    "",
-//    "",
-//    "create-db",
-//    enuConfigSource::Arg
-//);
+tmplConfigurable<QString> AppConfigs::MigrationsFolderName(
+    AppConfigs::makeConfig("MigrationsFolderName"),
+    "Relative folder name for creating migration files",
+    "migrations",
+    ReturnTrueCrossValidator(),
+//    Validators::tmplPathAccessValidator<
+//        TARGOMAN_PATH_ACCESS(enuPathAccess::Dir | enuPathAccess::Readable | enuPathAccess::Writeatble),
+//        false
+//    >,
+    "",
+    "PATH",
+    "migrations-folder",
+    enuConfigSource::Arg | enuConfigSource::File
+);
 
-//tmplConfigurable<QString> AppConfigs::ActionCreateLocal(
-//    AppConfigs::makeConfig("ActionCreateLocal"),
-//    "Create new local migration file",
-//    "",
-//    ReturnTrueCrossValidator(),
-//    "",
-//    "",
-//    "create-local",
-//    enuConfigSource::Arg
-//);
+tmplConfigurable<QString> AppConfigs::GlobalHistoryTableName(
+    AppConfigs::makeConfig("GlobalHistoryTableName"),
+    "Table name for storing global migration history",
+    "tblMigrations",
+    ReturnTrueCrossValidator(),
+    "",
+    "TABLENAME",
+    "global-history-table",
+    enuConfigSource::Arg | enuConfigSource::File
+);
 
-//tmplConfigurable<QString> AppConfigs::ActionList(
-//    AppConfigs::makeConfig("ActionList"),
-//    "Shows the first (n|all) new migrations",
-//    "10",
-//    ReturnTrueCrossValidator(),
-//    "",
-//    "",
-//    "list",
-//    enuConfigSource::Arg
-//);
+tmplConfigurable<QString> AppConfigs::LocalHistoryFileName(
+    AppConfigs::makeConfig("LocalHistoryFileName"),
+    "File name for storing local migration history",
+    ".migrations",
+    ReturnTrueCrossValidator(),
+//    Validators::tmplPathAccessValidator<
+//        TARGOMAN_PATH_ACCESS(enuPathAccess::File | enuPathAccess::Readable | enuPathAccess::Writeatble),
+//        false
+//    >,
+    "",
+    "FILE",
+    "local-history-file",
+    enuConfigSource::Arg | enuConfigSource::File
+);
 
-//tmplConfigurable<QString> AppConfigs::ActionHistory(
-//    AppConfigs::makeConfig("ActionHistory"),
-//    "Shows the last (n|all) applied migrations",
-//    "10",
-//    ReturnTrueCrossValidator(),
-//    "",
-//    "",
-//    "history",
-//    enuConfigSource::Arg
-//);
+tmplConfigurableArray<stuMigrationSource> AppConfigs::Sources(
+    AppConfigs::makeConfig("Sources"),
+    "Sources of migrations",
+    1
+);
 
-//tmplConfigurable<bool> AppConfigs::ActionUp(
-//    AppConfigs::makeConfig("ActionUp"),
-//    "Upgrade by running migrate files",
-//    false,
-//    ReturnTrueCrossValidator(),
-//    "",
-//    "",
-//    "up",
-//    enuConfigSource::Arg
-//);
-
-//tmplConfigurable<QString> AppConfigs::ActionUpTo(
-//    AppConfigs::makeConfig("ActionUpTo"),
-//    "Upgrade by running migrate files up to migration file name",
-//    "",
-//    ReturnTrueCrossValidator(),
-//    "",
-//    "",
-//    "up-to",
-//    enuConfigSource::Arg
-//);
+tmplConfigurable<QString> AppConfigs::ApplyToAllSourceName(
+    AppConfigs::makeConfig("ApplyToAllSourceName"),
+    "Source name for migrations set that must applied to the all other sources",
+    "TargomanMigrate",
+    ReturnTrueCrossValidator(),
+    "",
+    "NAME",
+    "apply-to-all-source-name",
+    enuConfigSource::Arg | enuConfigSource::File
+);
 
 /*
 tmplConfigurable<QString> AppConfigs::BasePath(
@@ -339,4 +341,4 @@ tmplConfigurable<QString> AppConfigs::MasterDB::Schema(
 
 } //namespace Targoman::Migrate
 
-ENUM_CONFIGURABLE_IMPL(Targoman::Migrate::enuAppAction);
+ENUM_CONFIGURABLE_IMPL(Targoman::Migrate::enuAppCommand);

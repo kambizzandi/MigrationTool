@@ -35,16 +35,17 @@ class AppMain : public QObject
 public:
     explicit AppMain(QObject *parent = nullptr);
 
-    void doActionCreateDB();
-    void doActionCreateLocal();
-    void doActionList();
-    void doActionHistory();
-    void doActionUp();
-    void doActionUpTo();
-    void doActionDown();
-    void doActionRedo();
-    void doActionFresh();
-    void doActionMark();
+    void ActionCreateDB(bool _showHelp=false);
+    void ActionCreateDBDiff(bool _showHelp=false);
+    void ActionCreateLocal(bool _showHelp=false);
+    void ActionList(bool _showHelp=false);
+    void ActionHistory(bool _showHelp=false);
+    void ActionUp(bool _showHelp=false);
+    void ActionUpTo(bool _showHelp=false);
+//    void ActionDown(bool _showHelp=false);
+//    void ActionRedo(bool _showHelp=false);
+//    void ActionFresh(bool _showHelp=false);
+    void ActionMark(bool _showHelp=false);
 
 public slots:
     void slotExecute();

@@ -15,4 +15,8 @@ addSubdirs(App)
 OTHER_FILES += \
     README.md \
     INSTALL \
-    LICENSE
+    LICENSE \
+    migrations/TargomanMigrate/db/* \
+    migrations/TargomanMigrate/local/* \
+    migrations/TargomanMigrate/.migrations \
+    migrations/migration.conf \
