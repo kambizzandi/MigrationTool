@@ -48,8 +48,8 @@ tmplConfigurable<enuAppCommand::Type> AppConfigs::Command(
     enuAppCommand::List,
     ReturnTrueCrossValidator(),
     "",
-    "ACTION",
-    "action",
+    "COMMAND",
+    "command",
     enuConfigSource::Arg
 );
 
@@ -112,15 +112,17 @@ tmplConfigurable<QString> AppConfigs::ApplyToAllSourceName(
 );
 
 /*
+
 tmplConfigurable<QString> AppConfigs::BasePath(
-        AppConfigs::makeConfig("BasePath"),
-        "Base path to access the REST API",
-        "rest",
-        ReturnTrueCrossValidator(),
-        "",
-        "PATH",
-        "base-path",
-        enuConfigSource::Arg | enuConfigSource::File);
+    AppConfigs::makeConfig("BasePath"),
+    "Base path",
+    "",
+    ReturnTrueCrossValidator(),
+    "",
+    "PATH",
+    "base-path",
+    enuConfigSource::Arg | enuConfigSource::File
+);
 
 tmplConfigurable<QString> AppConfigs::Version(
         AppConfigs::makeConfig("Version"),

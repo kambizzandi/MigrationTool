@@ -19,4 +19,4 @@ OTHER_FILES += \
     migrations/TargomanMigrate/db/* \
     migrations/TargomanMigrate/local/* \
     migrations/TargomanMigrate/.migrations \
-    migrations/migration.conf \
+    conf/* \

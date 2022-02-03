@@ -10,7 +10,8 @@ ProjectName="TargomanMigrate"
 VERSION=0.1
 
 #+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+-+-
-LIBS += -lTargomanCommon
+LIBS += -lTargomanCommon \
+        -lTargomanDBM
 #        -lQFieldValidator
 
 defined(QJsonRPC, var) equals(QJsonRPC, 1) {

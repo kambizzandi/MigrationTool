@@ -109,7 +109,7 @@ PWD: .../TargomanAPI
 ./App/migrations/local/.migrations (omitted by .gitignore)
 SYMLINK: ./migrations/App -> ./App/migrations
 
-./Modules/Account/migrations/db/Account/
+./Modules/Account/migrations/db/AAA/
 ./Modules/Account/migrations/local/
 ./Modules/Account/migrations/local/.migrations (omitted by .gitignore)
 SYMLINK: ./migrations/Account -> ./Modules/Account/migrations
@@ -154,43 +154,45 @@ PWD: /targoman
 ./migrations/App/db/CommonFuncs/
 ./migrations/App/db/I18N/
 ./migrations/App/local/
+./migrations/App/local/.migrations
 
-./migrations/Account/db/Account/
+./migrations/Account/db/AAA/
 ./migrations/Account/local/
+./migrations/Account/local/.migrations
 
 */
 
 struct stuMigrationDB
 {
-    tmplConfigurable<QStringList>  Hosts;
-    tmplConfigurable<QStringList>  Ports;
-    tmplConfigurable<QStringList>  UserNames;
-    tmplConfigurable<QStringList>  Passwords;
-    tmplConfigurable<QStringList>  Schemas;
+    tmplConfigurable<QString>  Host;
+    tmplConfigurable<QString>  Port;
+    tmplConfigurable<QString>  UserName;
+    tmplConfigurable<QString>  Password;
+    tmplConfigurable<QString>  Schema;
 
     stuMigrationDB(const QString &_basePath) :
-        Hosts(
-            _basePath + "Hosts",
+        Host(
+            _basePath + "Host",
             "",
             ""
         ),
-        Ports(
-            _basePath + "Ports",
+        Port(
+            _basePath + "Port",
             "",
             ""
         ),
-        UserNames(
-            _basePath + "UserNames",
+        UserName(
+            _basePath + "UserName",
             "",
             ""
         ),
-        Passwords(
-            _basePath + "Passwords",
+        Password(
+            _basePath + "Password",
             "",
             ""
         ),
-        Schemas(
-            _basePath + "Schemas",
+        Schema(
+            _basePath + "Schema",
             "",
             ""
         )
@@ -202,7 +204,7 @@ struct stuMigrationDB
 
     QVariant toVariant() const
     {
-        return "stuMigrationDB";
+        return ""; //"stuMigrationDB";
     }
 };
 
@@ -233,7 +235,7 @@ struct stuMigrationSource
 
     QVariant toVariant() const
     {
-        return "stuMigrationSource";
+        return ""; //"stuMigrationSource";
     }
 };
 
@@ -250,8 +252,7 @@ struct AppConfigs
 
 
 
-
-//    static tmplConfigurable<QString>       BasePath;
+//    static tmplConfigurable<QString>                    BasePath;
 //    static tmplConfigurable<QString>       Version;
 //    static tmplRangedConfigurable<quint16> ListenPort;
 //    static tmplConfigurable<bool>          IndentedJson;
@@ -294,7 +295,7 @@ template <> inline void Targoman::Common::Configuration::tmplConfigurableArray<T
 }
 template <> inline QVariant Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuMigrationDB>::toVariant() const
 {
-    return "tmplConfigurableArray<Targoman::Migrate::stuMigrationDB>";
+    return ""; //"tmplConfigurableArray<Targoman::Migrate::stuMigrationDB>";
 }
 
 template <> inline void Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuMigrationSource>::setFromVariant(const QVariant& _value)
@@ -318,7 +319,7 @@ template <> inline void Targoman::Common::Configuration::tmplConfigurableArray<T
 }
 template <> inline QVariant Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuMigrationSource>::toVariant() const
 {
-    return "tmplConfigurableArray<Targoman::Migrate::stuMigrationSource>";
+    return ""; //"tmplConfigurableArray<Targoman::Migrate::stuMigrationSource>";
 
 //    QVariantList Values;
 
