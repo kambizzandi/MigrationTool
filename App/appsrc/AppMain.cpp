@@ -1011,8 +1011,8 @@ void RunMigrationFile(const stuSourceMigrationFileInfo &_migrationFile)
         {
             QStringList Parts = _migrationFile.Source.split('.');
             Qry = Qry
+                .replace("{{Schema}}", DBConfig.Schema.value())
                 .replace("{{Config:GlobalHistoryTableName}}", AppConfigs::GlobalHistoryTableName.value())
-                .replace("{{SchemaName}}", DBConfig.Schema.value())
             ;
             clsDACResult MainResult = DAC.execQuery("", Qry);
         }
