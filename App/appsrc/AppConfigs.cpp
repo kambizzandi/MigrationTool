@@ -35,14 +35,14 @@ using namespace Targoman::Common::Configuration;
 tmplConfigurable<enuAppCommand::Type> AppConfigs::Command(
     AppConfigs::makeConfig("Command"),
     R"(Application command:
-                    CreateDB        : Creating new global migration (store in /migrations/db/)
-                    CreateDBDiff    : Creating new global database migration and fills by libTargomanDBCompare (store in /migrations/db/)
-                    CreateLocal     : Creating new local migration (store in /migrations/local/)
-                    List            : List of unapplied migrations
-                    History         : List of applied migrations
-                    Up              : Apply unapplied migrations
-                    UpTo            : Apply unapplied migrations up to specified point
-                    Mark            : Set migrations as applied to the specified point (not actually run migrations)
+                    CreateDB     : Creating new global migration (store in /migrations/db/)
+                    CreateDBDiff : Creating new global database migration and fills by libTargomanDBCompare (store in /migrations/db/)
+                    CreateLocal  : Creating new local migration (store in /migrations/local/)
+                    List         : List of unapplied migrations
+                    History      : List of applied migrations
+                    Up           : Apply unapplied migrations
+                    UpTo         : Apply unapplied migrations up to specified point
+                    Mark         : Set migrations as applied to the specified point (not actually run migrations)
 )",
 //        Down            : Rollback applied migrations
     enuAppCommand::List,
