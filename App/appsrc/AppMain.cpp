@@ -163,12 +163,19 @@ void AppMain::slotExecute()
     QCoreApplication::exit(0);
 }
 
+enum class enuChooseCreateMigrationScope
+{
+    db,
+    dbdiff,
+    local
+};
+
 bool ChooseCreateMigrationProperties(
-        bool _scopeIsDB,
+        enuChooseCreateMigrationScope _chooseScope,
         QString &_fileName,
         QString &_fullFileName,
-        stuMigrationSource *_source = nullptr,
-        stuMigrationDB *_db = nullptr
+        qint32 *_sourceIndex = nullptr,
+        qint32 *_dBIndex = nullptr
     )
 {
     QDir BaseFolder(AppConfigs::MigrationsFolderName.value());
@@ -180,11 +187,6 @@ bool ChooseCreateMigrationProperties(
             << "Source"
             ;
     qInfo() << _line_splitter;
-
-    qInfo().noquote()
-            << "   1"
-            << QString("Apply To All [%1]").arg(AppConfigs::ApplyToAllSourceName.value())
-            ;
 
     struct stuSourceInfo {
         QString SourceName;
@@ -204,7 +206,14 @@ bool ChooseCreateMigrationProperties(
     };
 
     QList<stuSourceInfo> Sources;
-    Sources.append(stuSourceInfo(AppConfigs::ApplyToAllSourceName.value()));
+    if (_chooseScope != enuChooseCreateMigrationScope::dbdiff)
+    {
+        Sources.append(stuSourceInfo(AppConfigs::ApplyToAllSourceName.value()));
+        qInfo().noquote()
+                << "   1"
+                << QString("Apply To All [%1]").arg(AppConfigs::ApplyToAllSourceName.value())
+                ;
+    }
 
     if (AppConfigs::Sources.size() > 0)
     {
@@ -212,7 +221,18 @@ bool ChooseCreateMigrationProperties(
         {
             stuMigrationSource &Source = AppConfigs::Sources[idxSource];
 
-            if (_scopeIsDB)
+            if (_chooseScope == enuChooseCreateMigrationScope::local)
+            {
+                QString Name = Source.Name.value();
+
+                Sources.append(stuSourceInfo(Name, idxSource));
+
+                qInfo().noquote()
+                        << QString::number(Sources.length()).rightJustified(4)
+                        << Name
+                        ;
+            }
+            else
             {
                 for (size_t idxDB=0; idxDB<Source.DB.size(); idxDB++)
                 {
@@ -231,17 +251,6 @@ bool ChooseCreateMigrationProperties(
                             ;
                 }
             }
-            else
-            {
-                QString Name = Source.Name.value();
-
-                Sources.append(stuSourceInfo(Name));
-
-                qInfo().noquote()
-                        << QString::number(Sources.length()).rightJustified(4)
-                        << Name
-                        ;
-            }
         }
     }
 
@@ -252,7 +261,7 @@ bool ChooseCreateMigrationProperties(
     {
         qStdout()
                 << "For which source do you want to create a new "
-                << (_scopeIsDB ? "db" : "local")
+                << (_chooseScope == enuChooseCreateMigrationScope::local ? "local" : "db")
                 << " migration file?"
                 << " "
                 << reverse("[") << reverse(bold("c")) << reverse("ancel]")
@@ -338,41 +347,46 @@ bool ChooseCreateMigrationProperties(
         break;
     }
 
-    if ((SourceID > 1) && (_source != nullptr) && (Sources[SourceID].SourceIndex >= 0))
-    {
-        _source = &AppConfigs::Sources[Sources[SourceID].SourceIndex];
-        if ((Sources[SourceID].DBIndex > 0) && (_db != nullptr))
-            _db = &_source->DB[Sources[SourceID].DBIndex];
-    }
+//    qDebug() << "***************"
+//             << SourceID
+//             << Sources[SourceID - 1].SourceName
+//             << Sources[SourceID - 1].SourceIndex
+//             << Sources[SourceID - 1].DBIndex
+//             ;
+
+    if (_sourceIndex != nullptr)
+        *_sourceIndex = Sources[SourceID - 1].SourceIndex;
+    if (_dBIndex != nullptr)
+        *_dBIndex = Sources[SourceID - 1].DBIndex;
 
     _fileName = QString("m%1_%2.%3")
                 .arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss"))
                 .arg(SourceLabel)
-                .arg(_scopeIsDB ? "sql" : "sh")
+                .arg(_chooseScope == enuChooseCreateMigrationScope::local ? "sh" : "sql")
                 ;
 
-    if (SourceID == 1)
+    if ((_chooseScope != enuChooseCreateMigrationScope::dbdiff) && (SourceID == 1))
     {
         _fullFileName = QString("%1/%2/%3/%4")
                         .arg(BaseFolder.path())
                         .arg(Sources[SourceID - 1].SourceName)
-                        .arg(_scopeIsDB ? "db" : "local")
+                        .arg(_chooseScope == enuChooseCreateMigrationScope::local ? "local" : "db")
                         .arg(_fileName)
                         ;
     }
-    else if (_scopeIsDB)
+    else if (_chooseScope == enuChooseCreateMigrationScope::local)
     {
-        _fullFileName = QString("%1/%2/%3")
+        _fullFileName = QString("%1/%2/local/%3")
                         .arg(BaseFolder.path())
-                        .arg(Sources[SourceID - 1].SourceName.replace(".", "/db/"))
+                        .arg(Sources[SourceID - 1].SourceName)
                         .arg(_fileName)
                         ;
     }
     else
     {
-        _fullFileName = QString("%1/%2/local/%3")
+        _fullFileName = QString("%1/%2/%3")
                         .arg(BaseFolder.path())
-                        .arg(Sources[SourceID - 1].SourceName)
+                        .arg(Sources[SourceID - 1].SourceName.replace(".", "/db/"))
                         .arg(_fileName)
                         ;
     }
@@ -391,7 +405,7 @@ void AppMain::ActionCreateDB(bool _showHelp)
     QString FullFileName;
 
     if (ChooseCreateMigrationProperties(
-                true,
+                enuChooseCreateMigrationScope::db,
                 FileName,
                 FullFileName
                 ) == false)
@@ -428,22 +442,34 @@ void AppMain::ActionCreateDBDiff(bool _showHelp)
 
     QString FileName;
     QString FullFileName;
-    stuMigrationSource *_source = nullptr;
-    stuMigrationDB *_db = nullptr;
+    qint32 SourceIndex = -1;
+    qint32 DBIndex = -1;
 
     if (ChooseCreateMigrationProperties(
-                true,
+                enuChooseCreateMigrationScope::dbdiff,
                 FileName,
                 FullFileName,
-                _source,
-                _db
+                &SourceIndex,
+                &DBIndex
                 ) == false)
         return;
 
-    qInfo().noquote().nospace() << "Creating new migration file: " << FullFileName;
+//    qDebug() << "===================="
+//             << SourceIndex
+//             << DBIndex
+//             ;
 
-//    qDebug() << _source->Name.value();
-//    qDebug() << _db->Schema.value();
+    if (SourceIndex == -1)
+        throw exTargomanBase("Invalid Source Index");
+
+    if (DBIndex == -1)
+        throw exTargomanBase("Invalid DB Index");
+
+    stuMigrationSource &Source = AppConfigs::Sources[SourceIndex];
+    stuMigrationDB &DB = Source.DB[DBIndex];
+
+    qDebug() << Source.Name.value();
+    qDebug() << DB.Schema.value();
 
 
 
@@ -451,6 +477,7 @@ void AppMain::ActionCreateDBDiff(bool _showHelp)
 //    libTargomanCompare
 
 
+    qInfo().noquote().nospace() << "Creating new migration file: " << FullFileName;
 
 
 
@@ -488,7 +515,7 @@ void AppMain::ActionCreateLocal(bool _showHelp)
     QString FullFileName;
 
     if (ChooseCreateMigrationProperties(
-                false,
+                enuChooseCreateMigrationScope::local,
                 FileName,
                 FullFileName
                 ) == false)
