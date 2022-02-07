@@ -41,7 +41,6 @@ tmplConfigurable<enuAppCommand::Type> AppConfigs::Command(
                     List         : List of unapplied migrations
                     History      : List of applied migrations
                     Up           : Apply unapplied migrations
-                    UpTo         : Apply unapplied migrations up to specified point
                     Mark         : Set migrations as applied to the specified point (not actually run migrations)
 )",
 //        Down            : Rollback applied migrations

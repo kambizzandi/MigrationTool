@@ -20,3 +20,7 @@ OTHER_FILES += \
     migrations/TargomanMigrate/local/* \
     migrations/TargomanMigrate/.migrations \
     conf/* \
+    targomanMigrate-bash-completion.bash \
+    install-bash-completion.sh \
+    runTargomanMigrate-dev.sh \
+    runTargomanMigrate.sh \

@@ -41,11 +41,10 @@ public:
     void ActionList(bool _showHelp=false);
     void ActionHistory(bool _showHelp=false);
     void ActionUp(bool _showHelp=false);
-    void ActionUpTo(bool _showHelp=false);
+    void ActionMark(bool _showHelp=false);
 //    void ActionDown(bool _showHelp=false);
 //    void ActionRedo(bool _showHelp=false);
 //    void ActionFresh(bool _showHelp=false);
-    void ActionMark(bool _showHelp=false);
 
 public slots:
     void slotExecute();

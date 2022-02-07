@@ -39,7 +39,8 @@ using namespace Targoman::DBManager;
 namespace Targoman::Migrate {
 
 constexpr char _line_splitter[] = "------------------------------------------------------------------------";
-constexpr char _regex_pattern_migration_filename[] = "m[0-9]{8}_[0-9]{6}_[a-zA-Z0-9-_]*.(sh|sql)";
+constexpr char _regex_pattern_migration_filename[]     = "m[0-9]{8}_[0-9]{6}_[a-zA-Z0-9-_]*.(sh|sql)";
+constexpr char _regex_pattern_migration_log_filename[] = "m[0-9]{8}_[0-9]{6}_[a-zA-Z0-9-_]*.(sh|sql).log";
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -48,6 +49,27 @@ constexpr char _regex_pattern_migration_filename[] = "m[0-9]{8}_[0-9]{6}_[a-zA-Z
 //TARGOMAN_ADD_EXCEPTION_HANDLER(exInvalidAPIModule, exModuleLoader);
 //TARGOMAN_ADD_EXCEPTION_HANDLER(exAPIModuleInitiailization, exModuleLoader);
 #pragma clang diagnostic pop
+
+QString bold(const QString &_s)
+{
+    return QString("\x1b[1m%1\x1b[0m").arg(_s);
+}
+
+QString reverse(const QString &_s)
+{
+    return QString("\x1b[7m%1\x1b[0m").arg(_s);
+}
+
+inline QTextStream& qStdout()
+{
+    static QTextStream rOUT{stdout};
+    return rOUT;
+}
+inline QTextStream& qStdIn()
+{
+    static QTextStream rIN{stdin};
+    return rIN;
+}
 
 AppMain::AppMain(QObject *parent) : QObject(parent)
 {}
@@ -107,10 +129,6 @@ void AppMain::slotExecute()
                 ActionUp();
                 break;
 
-            case enuAppCommand::UpTo:
-                ActionUpTo();
-                break;
-
 //            case enuAppCommand::Down:
 //                ActionDown();
 //                break;
@@ -145,6 +163,223 @@ void AppMain::slotExecute()
     QCoreApplication::exit(0);
 }
 
+bool ChooseCreateMigrationProperties(
+        bool _scopeIsDB,
+        QString &_fileName,
+        QString &_fullFileName,
+        stuMigrationSource *_source = nullptr,
+        stuMigrationDB *_db = nullptr
+    )
+{
+    QDir BaseFolder(AppConfigs::MigrationsFolderName.value());
+    ///TODO: check if dir exists
+    BaseFolder.makeAbsolute();
+
+    qInfo().noquote()
+            << "    "
+            << "Source"
+            ;
+    qInfo() << _line_splitter;
+
+    qInfo().noquote()
+            << "   1"
+            << QString("Apply To All [%1]").arg(AppConfigs::ApplyToAllSourceName.value())
+            ;
+
+    struct stuSourceInfo {
+        QString SourceName;
+        qint32 SourceIndex;
+        qint32 DBIndex;
+
+        stuSourceInfo(
+                QString _sourceName,
+                qint32 _sourceIndex = -1,
+                qint32 _dBIndex = -1
+            ) :
+            SourceName(_sourceName),
+            SourceIndex(_sourceIndex),
+            DBIndex(_dBIndex)
+        {}
+
+    };
+
+    QList<stuSourceInfo> Sources;
+    Sources.append(stuSourceInfo(AppConfigs::ApplyToAllSourceName.value()));
+
+    if (AppConfigs::Sources.size() > 0)
+    {
+        for (size_t idxSource=0; idxSource<AppConfigs::Sources.size(); idxSource++)
+        {
+            stuMigrationSource &Source = AppConfigs::Sources[idxSource];
+
+            if (_scopeIsDB)
+            {
+                for (size_t idxDB=0; idxDB<Source.DB.size(); idxDB++)
+                {
+                    stuMigrationDB &DB = Source.DB[idxDB];
+
+                    QString Name = QString("%1.%2")
+                                   .arg(Source.Name.value())
+                                   .arg(DB.Schema.value())
+                                   ;
+
+                    Sources.append(stuSourceInfo(Name, idxSource, idxDB));
+
+                    qInfo().noquote()
+                            << QString::number(Sources.length()).rightJustified(4)
+                            << Name
+                            ;
+                }
+            }
+            else
+            {
+                QString Name = Source.Name.value();
+
+                Sources.append(stuSourceInfo(Name));
+
+                qInfo().noquote()
+                        << QString::number(Sources.length()).rightJustified(4)
+                        << Name
+                        ;
+            }
+        }
+    }
+
+    qInfo() << "";
+
+    qint32 SourceID;
+    while (true)
+    {
+        qStdout()
+                << "For which source do you want to create a new "
+                << (_scopeIsDB ? "db" : "local")
+                << " migration file?"
+                << " "
+                << reverse("[") << reverse(bold("c")) << reverse("ancel]")
+                << " "
+                << reverse("[") << reverse(bold("1")) << reverse("]")
+                ;
+
+        if (Sources.length() > 1)
+        {
+            qStdout()
+                    << reverse(" to ")
+                    << reverse("[") << reverse(bold(QString::number(Sources.length()))) << reverse("]")
+                    ;
+        }
+        qStdout() << " ";
+        qStdout().flush();
+
+        QString value = qStdIn().readLine().trimmed();
+
+        if (value.isEmpty())
+            continue;
+
+        if (value == "c")
+            return false;
+
+        bool ok = false;
+        SourceID = value.toInt(&ok);
+
+        if (ok)
+        {
+            if ((SourceID <= 0) || (SourceID > Sources.length()))
+                qStdout() << "Input must be between 1 and " << Sources.length() << endl;
+            else
+            {
+                qInfo().noquote().nospace()
+                        << "Your choose: ["
+                        << SourceID
+                        << "- "
+                        << Sources[SourceID - 1].SourceName
+                        << "]"
+                ;
+                break;
+            }
+        }
+        else
+            qStdout() << "Invalid input " << value << endl;
+    }
+    qInfo() << "";
+
+    QString SourceLabel;
+    while (true)
+    {
+        qStdout()
+                << "Enter label of new migration file"
+                << " "
+                << reverse("[only ") << reverse(bold("a-z A-Z 0-9")) << reverse(" and ") << reverse(bold("_")) << reverse(" allowed, maximum of 64 characters]")
+                << " or "
+                << reverse("[") << reverse(bold("empty")) << reverse(" for cancel]")
+                << " : "
+                ;
+        qStdout().flush();
+
+        SourceLabel = qStdIn().readLine().trimmed();
+
+        if (SourceLabel.isEmpty())
+            return false;
+
+        if (QRegExp("[a-zA-Z0-9_]+").exactMatch(SourceLabel) == false)
+        {
+            SourceLabel = "";
+            qStdout() << "Invalid characters in source label." << endl;
+            continue;
+        }
+
+        if (SourceLabel.length() > 64)
+        {
+            SourceLabel = "";
+            qStdout() << "Source label length is > 64" << endl;
+            continue;
+        }
+
+        //ok:
+        break;
+    }
+
+    if ((SourceID > 1) && (_source != nullptr) && (Sources[SourceID].SourceIndex >= 0))
+    {
+        _source = &AppConfigs::Sources[Sources[SourceID].SourceIndex];
+        if ((Sources[SourceID].DBIndex > 0) && (_db != nullptr))
+            _db = &_source->DB[Sources[SourceID].DBIndex];
+    }
+
+    _fileName = QString("m%1_%2.%3")
+                .arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss"))
+                .arg(SourceLabel)
+                .arg(_scopeIsDB ? "sql" : "sh")
+                ;
+
+    if (SourceID == 1)
+    {
+        _fullFileName = QString("%1/%2/%3/%4")
+                        .arg(BaseFolder.path())
+                        .arg(Sources[SourceID - 1].SourceName)
+                        .arg(_scopeIsDB ? "db" : "local")
+                        .arg(_fileName)
+                        ;
+    }
+    else if (_scopeIsDB)
+    {
+        _fullFileName = QString("%1/%2/%3")
+                        .arg(BaseFolder.path())
+                        .arg(Sources[SourceID - 1].SourceName.replace(".", "/db/"))
+                        .arg(_fileName)
+                        ;
+    }
+    else
+    {
+        _fullFileName = QString("%1/%2/local/%3")
+                        .arg(BaseFolder.path())
+                        .arg(Sources[SourceID - 1].SourceName)
+                        .arg(_fileName)
+                        ;
+    }
+
+    return true;
+}
+
 void AppMain::ActionCreateDB(bool _showHelp)
 {
     if (_showHelp)
@@ -152,8 +387,36 @@ void AppMain::ActionCreateDB(bool _showHelp)
         return;
     }
 
-    qInfo() << "New global database migration:";
-    qInfo() << _line_splitter;
+    QString FileName;
+    QString FullFileName;
+
+    if (ChooseCreateMigrationProperties(
+                true,
+                FileName,
+                FullFileName
+                ) == false)
+        return;
+
+    qInfo().noquote().nospace() << "Creating new migration file: " << FullFileName;
+
+    QFile File(FullFileName);
+    if (File.open(QFile::WriteOnly | QFile::Text) == false)
+    {
+        qInfo() << "Could not create new migration file.";
+        return;
+    }
+
+    QTextStream writer(&File);
+    writer
+        << "/* Migration File: "
+        << FileName
+        << " */"
+        << endl
+        << endl
+        ;
+    File.close();
+
+    qInfo().noquote() << "Empty migration file created successfully.";
 }
 
 void AppMain::ActionCreateDBDiff(bool _showHelp)
@@ -163,8 +426,55 @@ void AppMain::ActionCreateDBDiff(bool _showHelp)
         return;
     }
 
-    qInfo() << "New global database migration by db diff:";
-    qInfo() << _line_splitter;
+    QString FileName;
+    QString FullFileName;
+    stuMigrationSource *_source = nullptr;
+    stuMigrationDB *_db = nullptr;
+
+    if (ChooseCreateMigrationProperties(
+                true,
+                FileName,
+                FullFileName,
+                _source,
+                _db
+                ) == false)
+        return;
+
+    qInfo().noquote().nospace() << "Creating new migration file: " << FullFileName;
+
+//    qDebug() << _source->Name.value();
+//    qDebug() << _db->Schema.value();
+
+
+
+
+//    libTargomanCompare
+
+
+
+
+
+
+
+//    QFile File(FullFileName);
+
+//    if (File.open(QFile::WriteOnly | QFile::Text) == false)
+//    {
+//        qInfo() << "Could not create new migration file.";
+//        return;
+//    }
+
+//    QTextStream writer(&File);
+//    writer
+//        << "/* Migration File: "
+//        << FileName
+//        << " */"
+//        << endl
+//        << endl
+//        ;
+//    File.close();
+
+//    qInfo().noquote() << "Migration file by diff created successfully.";
 }
 
 void AppMain::ActionCreateLocal(bool _showHelp)
@@ -174,8 +484,37 @@ void AppMain::ActionCreateLocal(bool _showHelp)
         return;
     }
 
-    qInfo() << "New local migration:";
-    qInfo() << _line_splitter;
+    QString FileName;
+    QString FullFileName;
+
+    if (ChooseCreateMigrationProperties(
+                false,
+                FileName,
+                FullFileName
+                ) == false)
+        return;
+
+    qInfo().noquote().nospace() << "Creating new migration file: " << FullFileName;
+
+    QFile File(FullFileName);
+    if (File.open(QFile::WriteOnly | QFile::Text) == false)
+    {
+        qInfo() << "Could not create new migration file.";
+        return;
+    }
+
+    QTextStream writer(&File);
+    writer
+        << "#!/bin/bash"
+        << endl
+        << "# Migration File: "
+        << FileName
+        << endl
+        << endl
+        ;
+    File.close();
+
+    qInfo().noquote() << "Empty migration file created successfully.";
 }
 
 struct stuSourceMigrationFileInfo {
@@ -207,6 +546,42 @@ struct stuSourceMigrationFileInfo {
         FullFileName(_fullFileName)
     {}
 };
+//key: MigrationName
+typedef QMap<QString, stuSourceMigrationFileInfo> SourceMigrationFileInfoMap;
+
+void dump(SourceMigrationFileInfoMap &_var, bool _renderForAppliedHistoryItem = false)
+{
+    qDebug().noquote() //.nospace()
+//                << QString("key").leftJustified(60)
+            << "    "
+            << QString("FileName").leftJustified(50)
+            << QString("Scope").leftJustified(8)
+            << QString("Source").leftJustified(20)
+            << (_renderForAppliedHistoryItem ? "Applied At" : "FullFileName")
+            ;
+    qDebug().noquote()
+            << QString(150, '-');
+
+    int idx = 1;
+    for (SourceMigrationFileInfoMap::const_iterator it = _var.constBegin();
+         it != _var.constEnd();
+         it++)
+    {
+        QString key = it.key();
+        const stuSourceMigrationFileInfo &val = it.value();
+
+        qDebug().noquote() //.nospace()
+                << QString("%1").arg(idx).rightJustified(4)
+//                << key.leftJustified(60)
+                << val.FileName.leftJustified(50)
+                << val.Scope.leftJustified(8)
+                << val.Source.leftJustified(20)
+                << val.FullFileName
+                ;
+
+        ++idx;
+    }
+}
 
 struct stuHistoryAppliedItem {
     QString MigrationName;
@@ -258,61 +633,8 @@ struct stuMigrationHistory {
         Exists(false)
     {}
 };
-
-//key: MigrationName
-typedef QMap<QString, stuSourceMigrationFileInfo> SourceMigrationFileInfoMap;
-
 //key: Source + Scope
 typedef QMap<QString, stuMigrationHistory> MigrationHistoryMap;
-
-void dump(SourceMigrationFileInfoMap &_var)
-{
-    qDebug().noquote() //.nospace()
-//                << QString("key").leftJustified(60)
-            << "    "
-            << QString("FileName").leftJustified(50)
-            << QString("Scope").leftJustified(8)
-            << QString("Source").leftJustified(20)
-            << QString("FullFileName")
-            ;
-    qDebug().noquote()
-            << QString(150, '-');
-
-    int idx = 1;
-    for (SourceMigrationFileInfoMap::const_iterator it = _var.constBegin();
-         it != _var.constEnd();
-         it++)
-    {
-        QString key = it.key();
-        const stuSourceMigrationFileInfo &val = it.value();
-
-        qDebug().noquote() //.nospace()
-                << QString("%1").arg(idx).rightJustified(4)
-//                << key.leftJustified(60)
-                << val.FileName.leftJustified(50)
-                << val.Scope.leftJustified(8)
-                << val.Source.leftJustified(20)
-                << val.FullFileName
-                ;
-
-        ++idx;
-    }
-}
-
-void dump(QMap<QString, QString> &_var)
-{
-    for (QMap<QString, QString>::const_iterator it = _var.constBegin();
-         it != _var.constEnd();
-         it++)
-    {
-        QString key = it.key();
-        QString val = it.value();
-
-        qDebug().noquote().nospace()
-                << key.leftJustified(65)
-                << val;
-    }
-}
 
 void dump(const QMap<QString, stuHistoryAppliedItem> &_var)
 {
@@ -377,6 +699,21 @@ void dump(MigrationHistoryMap &_var)
     }
 }
 
+void dump(QMap<QString, QString> &_var)
+{
+    for (QMap<QString, QString>::const_iterator it = _var.constBegin();
+         it != _var.constEnd();
+         it++)
+    {
+        QString key = it.key();
+        QString val = it.value();
+
+        qDebug().noquote().nospace()
+                << key.leftJustified(65)
+                << val;
+    }
+}
+
 void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
 {
     QDir BaseFolder(AppConfigs::MigrationsFolderName.value());
@@ -404,7 +741,8 @@ void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
                     QString FileName = BaseFolder.relativeFilePath(FullFileName);
                     if (QRegExp(_regex_pattern_migration_filename).exactMatch(FileName) == false)
                     {
-                        qDebug() << "invalid file name:" << FileName << "in" << BaseFolder.path();
+                        if (QRegExp(_regex_pattern_migration_log_filename).exactMatch(FileName) == false)
+                            qDebug() << "invalid file name:" << FileName << "in" << BaseFolder.path();
                         continue;
                     }
 
@@ -430,7 +768,8 @@ void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
                         if (FileName != AppConfigs::LocalHistoryFileName.value())
 //                            _localHistoryFiles.insert(AppConfigs::ApplyToAllSourceName.value(), FullFileName);
 //                        else
-                            qDebug() << "invalid file name:" << FileName << "in" << BaseFolder.path();
+                            if (QRegExp(_regex_pattern_migration_log_filename).exactMatch(FileName) == false)
+                                qDebug() << "invalid file name:" << FileName << "in" << BaseFolder.path();
 
                         continue;
                     }
@@ -518,7 +857,8 @@ void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
                                 QString FileName = BaseFolder.relativeFilePath(FullFileName);
                                 if (QRegExp(_regex_pattern_migration_filename).exactMatch(FileName) == false)
                                 {
-                                    qDebug() << "invalid file name:" << FileName << "in" << BaseFolder.path();
+                                    if (QRegExp(_regex_pattern_migration_log_filename).exactMatch(FileName) == false)
+                                        qDebug() << "invalid file name:" << FileName << "in" << BaseFolder.path();
                                     continue;
                                 }
 
@@ -560,7 +900,8 @@ void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
                             if (FileName != AppConfigs::LocalHistoryFileName.value())
 //                                _localHistoryFiles.insert(Source.Name.value(), FullFileName);
 //                            else
-                                qDebug() << "invalid file name:" << FileName << "in" << BaseFolder.path();
+                                if (QRegExp(_regex_pattern_migration_log_filename).exactMatch(FileName) == false)
+                                    qDebug() << "invalid file name:" << FileName << "in" << BaseFolder.path();
 
                             continue;
                         }
@@ -835,10 +1176,10 @@ void AppMain::ActionList(bool _showHelp)
     if (_showHelp)
     {
         qInfo() << "List of unapplied migrations";
-        qInfo() << _line_splitter;
-        qInfo() << "./targomanMigrate" << "List     : showing the first 10 new migrations";
-        qInfo() << "./targomanMigrate" << "List 5   : showing the first 5 new migrations";
-        qInfo() << "./targomanMigrate" << "List all : showing all new migrations";
+//        qInfo() << _line_splitter;
+//        qInfo() << "./targomanMigrate" << "List     : showing the first 10 new migrations";
+//        qInfo() << "./targomanMigrate" << "List 5   : showing the first 5 new migrations";
+//        qInfo() << "./targomanMigrate" << "List all : showing all new migrations";
         return;
     }
 
@@ -867,31 +1208,57 @@ void AppMain::ActionHistory(bool _showHelp)
     if (_showHelp)
     {
         qInfo() << "List of applied migrations";
-        qInfo() << _line_splitter;
-        qInfo() << "./targomanMigrate" << "History     : showing the first 10 applied migrations";
-        qInfo() << "./targomanMigrate" << "History 5   : showing the first 5 applied migrations";
-        qInfo() << "./targomanMigrate" << "History all : showing all applied migrations";
+//        qInfo() << _line_splitter;
+//        qInfo() << "./targomanMigrate" << "History     : showing the first 10 applied migrations";
+//        qInfo() << "./targomanMigrate" << "History 5   : showing the first 5 applied migrations";
+//        qInfo() << "./targomanMigrate" << "History all : showing all applied migrations";
         return;
+    }
+
+    MigrationHistoryMap MigrationHistories;
+    ExtractMigrationHistories(MigrationHistories);
+//    qDebug() << "** MigrationHistories ******************************";
+//    dump(MigrationHistories);
+
+    SourceMigrationFileInfoMap MigrationFiles;
+    for (MigrationHistoryMap::const_iterator it = MigrationHistories.constBegin();
+         it != MigrationHistories.constEnd();
+         it++)
+    {
+        QString key = it.key();
+        const stuMigrationHistory &MigrationHistoryItem = it.value();
+
+        if (MigrationHistoryItem.AppliedItems.isEmpty() == false)
+        {
+            for (QMap<QString, stuHistoryAppliedItem>::const_iterator it = MigrationHistoryItem.AppliedItems.constBegin();
+                 it != MigrationHistoryItem.AppliedItems.constEnd();
+                 it++)
+            {
+                QString key = it.key();
+                const stuHistoryAppliedItem &MigrationHistoryAppliedItem = it.value();
+
+                QString MigrationName = QString("%1:%2@%3")
+                                        .arg(MigrationHistoryAppliedItem.MigrationName)
+                                        .arg(MigrationHistoryItem.Scope)
+                                        .arg(MigrationHistoryItem.Source);
+
+                stuSourceMigrationFileInfo SourceMigrationFileInfo(
+                    MigrationName,
+                    MigrationHistoryAppliedItem.MigrationName,
+                    MigrationHistoryItem.Scope,
+                    MigrationHistoryItem.Source,
+                    MigrationHistoryAppliedItem.AppliedAt.toString("yyyy-MM-dd hh:mm:ss a")
+                );
+
+//                qDebug() << "*" << MigrationName;
+                MigrationFiles.insert(MigrationName, SourceMigrationFileInfo);
+            }
+        }
     }
 
     qInfo() << "Applied migrations:";
     qInfo() << _line_splitter;
-}
-
-QString bold(const QString &_s)
-{
-    return QString("\x1b[1m%1\x1b[0m").arg(_s);
-}
-
-QString reverse(const QString &_s)
-{
-    return QString("\x1b[7m%1\x1b[0m").arg(_s);
-}
-
-inline QTextStream& qStdout()
-{
-    static QTextStream r{stdout};
-    return r;
+    dump(MigrationFiles, true);
 }
 
 const stuMigrationDB& FindDBConfigByMigrationFile(const stuSourceMigrationFileInfo &_migrationFile)
@@ -992,68 +1359,75 @@ void MarkMigrationFile(const stuSourceMigrationFileInfo &_migrationFile)
     }
 }
 
-void RunMigrationFile(const stuSourceMigrationFileInfo &_migrationFile)
+void RunMigrationFile(const stuSourceMigrationFileInfo &_migrationFile, bool _run = true)
 {
     if (_migrationFile.Scope == "db")
     {
         stuMigrationDB DBConfig = FindDBConfigByMigrationFile(_migrationFile);
 
-        clsDAC DAC(DBConfig.Schema.value());
-
         //1: run migration
-        QFile File(_migrationFile.FullFileName);
-        if (!File.open(QFile::ReadOnly | QFile::Text))
-            throw exTargomanBase("File not found");
-
-        QTextStream stream(&File);
-        QString Qry = stream.readAll();
-        if (Qry.isEmpty() == false)
+        if (_run)
         {
-            QStringList Parts = _migrationFile.Source.split('.');
-            Qry = Qry
-                .replace("{{Schema}}", DBConfig.Schema.value())
-                .replace("{{Config:GlobalHistoryTableName}}", AppConfigs::GlobalHistoryTableName.value())
-            ;
-            clsDACResult MainResult = DAC.execQuery("", Qry);
-        }
+            clsDAC DAC(DBConfig.Schema.value());
 
-        File.close();
+            QFile File(_migrationFile.FullFileName);
+
+            if (!File.open(QFile::ReadOnly | QFile::Text))
+                throw exTargomanBase("File not found");
+
+            QTextStream stream(&File);
+            QString Qry = stream.readAll();
+            if (Qry.isEmpty() == false)
+            {
+                QStringList Parts = _migrationFile.Source.split('.');
+                Qry = Qry
+                    .replace("{{Schema}}", DBConfig.Schema.value())
+                    .replace("{{GlobalHistoryTableName}}", AppConfigs::GlobalHistoryTableName.value())
+                ;
+                clsDACResult MainResult = DAC.execQuery("", Qry);
+            }
+
+            File.close();
+        }
 
         //2: add to history
         MarkMigrationFile(_migrationFile);
     } //db
     else //local
     {
-        QFileInfo FileInfo(_migrationFile.FullFileName);
-
-        if (FileInfo.exists() == false)
-            throw exTargomanBase("File not found");
-
         //1: run migration
-        if (FileInfo.size() > 0)
+        if (_run)
         {
-            if (FileInfo.isExecutable() == false)
-                QFile::setPermissions(
-                            _migrationFile.FullFileName,
-                            FileInfo.permissions() |
-                            QFile::ExeUser | QFile::ExeGroup | QFile::ExeOwner | QFile::ExeOther
-                            );
+            QFileInfo FileInfo(_migrationFile.FullFileName);
 
-            QProcess MigrationProcess;
-            MigrationProcess.start(_migrationFile.FullFileName);
+            if (FileInfo.exists() == false)
+                throw exTargomanBase("File not found");
 
-            if (!MigrationProcess.waitForFinished())
-                throw exTargomanBase("Execution failed");
-
-            QByteArray ExResult = MigrationProcess.readAll();
-            if (ExResult.isEmpty() == false)
+            if (FileInfo.size() > 0)
             {
-                QFile LogFile(QString("%1.log").arg(_migrationFile.FullFileName));
-                if (LogFile.open(QFile::WriteOnly | QFile::Text))
+                if (FileInfo.isExecutable() == false)
+                    QFile::setPermissions(
+                                _migrationFile.FullFileName,
+                                FileInfo.permissions() |
+                                QFile::ExeUser | QFile::ExeGroup | QFile::ExeOwner | QFile::ExeOther
+                                );
+
+                QProcess MigrationProcess;
+                MigrationProcess.start(_migrationFile.FullFileName);
+
+                if (!MigrationProcess.waitForFinished())
+                    throw exTargomanBase("Execution failed");
+
+                QByteArray ExResult = MigrationProcess.readAll();
+                if (ExResult.isEmpty() == false)
                 {
-                    QTextStream out(&LogFile);
-                    out << ExResult;
-                    LogFile.close();
+                    QFile LogFile(QString("%1.log").arg(_migrationFile.FullFileName));
+                    if (LogFile.open(QFile::WriteOnly | QFile::Text))
+                    {
+                        QTextStream out(&LogFile);
+                        out << ExResult;
+                        LogFile.close();
+                    }
                 }
             }
         }
@@ -1094,7 +1468,6 @@ void AppMain::ActionUp(bool _showHelp)
 
     qint32 RemainCount = 0;
 
-    QTextStream s(stdin);
     while (true)
     {
         qStdout()
@@ -1107,6 +1480,8 @@ void AppMain::ActionUp(bool _showHelp)
         if (MigrationFiles.count() == 1)
         {
             qStdout()
+                    << reverse("[") << reverse(bold("a")) << reverse("ll]")
+                    << reverse(" = ")
                     << reverse("[") << reverse(bold("1")) << reverse("]")
                     ;
         }
@@ -1123,7 +1498,11 @@ void AppMain::ActionUp(bool _showHelp)
         qStdout() << " ";
         qStdout().flush();
 
-        QString value = s.readLine();
+        QString value = qStdIn().readLine().trimmed();
+
+        if (value.isEmpty())
+            continue;
+
         if (value == "c")
             return;
 
@@ -1181,19 +1560,6 @@ void AppMain::ActionUp(bool _showHelp)
     qInfo() << "";
 }
 
-void AppMain::ActionUpTo(bool _showHelp)
-{
-    if (_showHelp)
-    {
-        return;
-    }
-
-    ActionList(false);
-
-    qInfo() << "Applied migrations:";
-    qInfo() << _line_splitter;
-}
-
 //void AppMain::ActionDown(bool _showHelp)
 //{
 //    if (_showHelp)
@@ -1218,22 +1584,139 @@ void AppMain::ActionMark(bool _showHelp)
     if (_showHelp)
     {
         qInfo() << "Modifying migration history without actually run migrations";
-        qInfo() << _line_splitter;
-        qInfo() << "./targomanMigrate" << "Mark 20220101_010203                              : add all unapplied migrations upto 20220101_010203";
-        qInfo() << "./targomanMigrate" << "Mark m20220101_010203                             : add all unapplied migrations upto 20220101_010203";
-        qInfo() << "./targomanMigrate" << "Mark m20220101_010203_description_of_migration    : add all unapplied migrations upto 20220101_010203";
-        qInfo() << "./targomanMigrate" << "Mark m20220101_010203_description_of_migration.sh : add all unapplied migrations upto 20220101_010203";
+//        qInfo() << _line_splitter;
+//        qInfo() << "./targomanMigrate" << "Mark 20220101_010203                              : add all unapplied migrations upto 20220101_010203";
+//        qInfo() << "./targomanMigrate" << "Mark m20220101_010203                             : add all unapplied migrations upto 20220101_010203";
+//        qInfo() << "./targomanMigrate" << "Mark m20220101_010203_description_of_migration    : add all unapplied migrations upto 20220101_010203";
+//        qInfo() << "./targomanMigrate" << "Mark m20220101_010203_description_of_migration.sh : add all unapplied migrations upto 20220101_010203";
         return;
+    }
+
+    SourceMigrationFileInfoMap MigrationFiles;
+    ExtractMigrationFiles(MigrationFiles);
+//    qDebug() << "** All MigrationFiles ******************************";
+//    dump(MigrationFiles);
+
+    MigrationHistoryMap MigrationHistories;
+    ExtractMigrationHistories(MigrationHistories);
+//    qDebug() << "** MigrationHistories ******************************";
+//    dump(MigrationHistories);
+
+    RemoveAppliedFromList(MigrationFiles, MigrationHistories);
+
+    if (MigrationFiles.isEmpty())
+    {
+        qInfo() << "nothing to mark";
+        return;
+    }
+
+//    qDebug() << "** Unapplied MigrationFiles ******************************";
+    dump(MigrationFiles);
+    qInfo() << "";
+
+    qint32 RemainCount = 0;
+
+    while (true)
+    {
+        qStdout()
+                << "Which migrations do you want to mark?"
+                << " "
+                << reverse("[") << reverse(bold("c")) << reverse("ancel]")
+                << " "
+                ;
+
+        if (MigrationFiles.count() == 1)
+        {
+            qStdout()
+                    << reverse("[") << reverse(bold("a")) << reverse("ll]")
+                    << reverse(" = ")
+                    << reverse("[") << reverse(bold("1")) << reverse("]")
+                    ;
+        }
+        else
+        {
+            qStdout()
+                    << reverse("[") << reverse(bold("a")) << reverse("ll]")
+                    << " "
+                    << reverse("1 to [") << reverse(bold("1")) << reverse("]")
+                    << reverse(" ... ")
+                    << reverse("[") << reverse(bold(QString::number(MigrationFiles.count()))) << reverse("]")
+                    ;
+        }
+        qStdout() << " ";
+        qStdout().flush();
+
+        QString value = qStdIn().readLine().trimmed();
+
+        if (value.isEmpty())
+            continue;
+
+        if (value == "c")
+            return;
+
+        if (value == "a")
+        {
+            RemainCount = MigrationFiles.count();
+            break;
+        }
+        else
+        {
+            bool ok = false;
+            RemainCount = value.toInt(&ok);
+
+            if (ok)
+            {
+                if ((RemainCount <= 0) || (RemainCount > MigrationFiles.count()))
+                    qStdout() << "Input must be between 1 and " << MigrationFiles.count() << endl;
+                else
+                    break;
+            }
+            else
+                qStdout() << "Invalid input " << value << endl;
+        }
     }
 
     qInfo() << "Marking migrations as applied:";
     qInfo() << _line_splitter;
 
-    std::cout << "are you sure? (y/n):";
-    std::string s;
-    std::cin >> s;
-    std::cout << "your answer:" << s;
-    std::cout << std::endl;
+    int idx = 1;
+    foreach (auto MigrationFile, MigrationFiles)
+    {
+        qStdout()
+                << "    "
+                << QString::number(idx++).rightJustified(5)
+                << " "
+                << MigrationFile.FileName
+                << " ["
+                << MigrationFile.Scope
+                << " @ "
+                << MigrationFile.Source
+                << "]"
+//                << MigrationFile.FullFileName
+                << " : "
+                ;
+
+        RunMigrationFile(MigrationFile, false);
+
+        qStdout() << "Marked" << endl;
+
+        --RemainCount;
+        if (RemainCount <= 0)
+            break;
+    }
+
+    qInfo() << "";
 }
 
 } //namespace Targoman::Migrate
+
+/*
+rm `find . -name .migrations`
+
+DROP TABLE if EXISTS AAA.tblMigrations;
+DROP TABLE if EXISTS Advert.tblMigrations;
+DROP TABLE if EXISTS Common.tblMigrations;
+DROP TABLE if EXISTS CommonFuncs.tblMigrations;
+DROP TABLE if EXISTS I18N.tblMigrations;
+DROP TABLE if EXISTS Ticketing.tblMigrations;
+*/
