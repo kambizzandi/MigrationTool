@@ -367,29 +367,30 @@ bool ChooseCreateMigrationProperties(
 
     if ((_chooseScope != enuChooseCreateMigrationScope::dbdiff) && (SourceID == 1))
     {
-        _fullFileName = QString("%1/%2/%3/%4")
+        _fullFileName = QString("%1/%2/%3")
                         .arg(BaseFolder.path())
                         .arg(Sources[SourceID - 1].SourceName)
                         .arg(_chooseScope == enuChooseCreateMigrationScope::local ? "local" : "db")
-                        .arg(_fileName)
                         ;
     }
     else if (_chooseScope == enuChooseCreateMigrationScope::local)
     {
-        _fullFileName = QString("%1/%2/local/%3")
+        _fullFileName = QString("%1/%2/local")
                         .arg(BaseFolder.path())
                         .arg(Sources[SourceID - 1].SourceName)
-                        .arg(_fileName)
                         ;
     }
     else
     {
-        _fullFileName = QString("%1/%2/%3")
+        _fullFileName = QString("%1/%2")
                         .arg(BaseFolder.path())
                         .arg(Sources[SourceID - 1].SourceName.replace(".", "/db/"))
-                        .arg(_fileName)
                         ;
     }
+
+    QDir().mkpath(_fullFileName);
+
+    _fullFileName = _fullFileName + "/" + _fileName;
 
     return true;
 }
