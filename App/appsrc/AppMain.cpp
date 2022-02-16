@@ -105,6 +105,10 @@ void AppMain::slotExecute()
 
         switch (AppConfigs::Command.value())
         {
+            case enuAppCommand::ShowConf:
+                ActionShowConf();
+                break;
+
             case enuAppCommand::CreateDB:
                 ActionCreateDB();
                 break;
@@ -339,7 +343,7 @@ bool ChooseCreateMigrationProperties(
         if (SourceLabel.length() > 64)
         {
             SourceLabel = "";
-            qStdout() << "Source label length is > 64" << endl;
+            qStdout() << "Source label length must be <= 64 characters" << endl;
             continue;
         }
 
@@ -1734,6 +1738,45 @@ void AppMain::ActionMark(bool _showHelp)
         --RemainCount;
         if (RemainCount <= 0)
             break;
+    }
+
+    qInfo() << "";
+}
+
+void AppMain::ActionShowConf()
+{
+    if (AppConfigs::Sources.size() == 0)
+    {
+        qInfo() << "nothing to show";
+        return;
+    }
+
+    qInfo().noquote()
+            << QString("Source").leftJustified(20)
+            << "Schemas"
+            << endl
+            << QString(100, '-')
+            ;
+
+    for (size_t idxSource=0; idxSource<AppConfigs::Sources.size(); idxSource++)
+    {
+        stuMigrationSource &Source = AppConfigs::Sources[idxSource];
+
+        QStringList DBs;
+        if (Source.DB.size() > 0)
+        {
+            for (size_t idxDB=0; idxDB<Source.DB.size(); idxDB++)
+            {
+                stuMigrationDB &DB = Source.DB[idxDB];
+
+                DBs.append(DB.Schema.value());
+            }
+        }
+
+        qInfo().noquote()
+                << Source.Name.value().leftJustified(20)
+                << DBs.join(", ")
+                ;
     }
 
     qInfo() << "";

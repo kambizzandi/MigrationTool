@@ -35,6 +35,7 @@ class AppMain : public QObject
 public:
     explicit AppMain(QObject *parent = nullptr);
 
+    void ActionShowConf();
     void ActionCreateDB(bool _showHelp=false);
     void ActionCreateDBDiff(bool _showHelp=false);
     void ActionCreateLocal(bool _showHelp=false);

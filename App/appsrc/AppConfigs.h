@@ -34,6 +34,7 @@ using namespace Targoman::Common::Configuration;
 namespace Targoman::Migrate {
 
 TARGOMAN_DEFINE_ENHANCED_ENUM(enuAppCommand,
+                              ShowConf,
                               CreateDB,
                               CreateDBDiff,
                               CreateLocal,
