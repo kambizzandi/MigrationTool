@@ -249,6 +249,8 @@ struct AppConfigs
     static tmplConfigurableArray<stuMigrationSource>    Sources;
     static tmplConfigurable<QString>                    ApplyToAllSourceName;
 
+    static tmplConfigurable<bool>                       DBOnly;
+    static tmplConfigurable<bool>                       LocalOnly;
 
 
 //    static tmplConfigurable<QString>                    BasePath;

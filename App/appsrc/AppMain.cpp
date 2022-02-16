@@ -759,7 +759,7 @@ void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
         if (BaseFolder.cd(AppConfigs::ApplyToAllSourceName.value()))
         {
             //db
-            if (BaseFolder.cd("db"))
+            if ((AppConfigs::LocalOnly.value() == false) && BaseFolder.cd("db"))
             {
                 QDirIterator itdb(BaseFolder.path(), QDir::Files);
                 while (itdb.hasNext())
@@ -783,7 +783,7 @@ void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
             }
 
             //local
-            if (BaseFolder.cd("local"))
+            if ((AppConfigs::DBOnly.value() == false) && BaseFolder.cd("local"))
             {
                 QDirIterator itlocal(BaseFolder.path(), QDir::Files | QDir::Hidden);
                 while (itlocal.hasNext())
@@ -833,7 +833,7 @@ void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
 //            qDebug() << Source.Name.value();
 
             //1: fill MigrationFiles by ApplyToAllMigrationFiles (* -> source name)
-            if ((Source.DB.size() > 0) && (ApplyToAllMigrationFiles.isEmpty() == false))
+            if ((AppConfigs::LocalOnly.value() == false) && (Source.DB.size() > 0) && (ApplyToAllMigrationFiles.isEmpty() == false))
             {
                 for (QMap<QString, QString>::const_iterator it = ApplyToAllMigrationFiles.constBegin();
                      it != ApplyToAllMigrationFiles.constEnd();
@@ -869,7 +869,7 @@ void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
             if (BaseFolder.cd(Source.Name.value()))
             {
                 //2: fill MigrationFiles by source/db
-                if ((Source.DB.size() > 0) && BaseFolder.cd("db"))
+                if ((AppConfigs::LocalOnly.value() == false) && (Source.DB.size() > 0) && BaseFolder.cd("db"))
                 {
                     for (size_t idxDB=0; idxDB<Source.DB.size(); idxDB++)
                     {
@@ -915,7 +915,7 @@ void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
                 }
 
                 //3: fill MigrationFiles by source/local
-                if (BaseFolder.cd("local"))
+                if ((AppConfigs::DBOnly.value() == false) && BaseFolder.cd("local"))
                 {
                     QDirIterator itlocal(BaseFolder.path(), QDir::Files | QDir::Hidden);
                     while (itlocal.hasNext())
@@ -1047,7 +1047,7 @@ void ExtractMigrationHistories(MigrationHistoryMap &_migrationHistories)
                     );
     };
 
-    if (AppConfigs::Sources.size() > 0)
+    if ((AppConfigs::LocalOnly.value() == false) && (AppConfigs::Sources.size() > 0))
     {
         for (size_t idxSource=0; idxSource<AppConfigs::Sources.size(); idxSource++)
         {
@@ -1125,21 +1125,24 @@ void ExtractMigrationHistories(MigrationHistoryMap &_migrationHistories)
                     );
     };
 
-    //1: check ApplyToAllSourceName
-    if (AppConfigs::ApplyToAllSourceName.value().isEmpty() == false)
+    if (AppConfigs::DBOnly.value() == false)
     {
-        fnCheckLocalSource(AppConfigs::ApplyToAllSourceName.value());
-    }
-
-    //2: check sources
-    if (AppConfigs::Sources.size() > 0)
-    {
-        for (size_t idxSource=0; idxSource<AppConfigs::Sources.size(); idxSource++)
+        //1: check ApplyToAllSourceName
+        if (AppConfigs::ApplyToAllSourceName.value().isEmpty() == false)
         {
-            stuMigrationSource &Source = AppConfigs::Sources[idxSource];
-//            qDebug() << Source.Name.value();
+            fnCheckLocalSource(AppConfigs::ApplyToAllSourceName.value());
+        }
 
-            fnCheckLocalSource(Source.Name.value());
+        //2: check sources
+        if (AppConfigs::Sources.size() > 0)
+        {
+            for (size_t idxSource=0; idxSource<AppConfigs::Sources.size(); idxSource++)
+            {
+                stuMigrationSource &Source = AppConfigs::Sources[idxSource];
+    //            qDebug() << Source.Name.value();
+
+                fnCheckLocalSource(Source.Name.value());
+            }
         }
     }
 }

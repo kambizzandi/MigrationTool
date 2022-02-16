@@ -32,11 +32,11 @@ using namespace Targoman::Common::Configuration;
 //QString AppConfigs::BasePathWithVersion;
 //TAPI::stuStatistics gServerStats;
 
+//CreateDBDiff : Creating new global database migration and fills by libTargomanDBCompare (store in /migrations/db/)
 tmplConfigurable<enuAppCommand::Type> AppConfigs::Command(
     AppConfigs::makeConfig("Command"),
     R"(Application command:
                     CreateDB     : Creating new global migration (store in /migrations/db/)
-                    CreateDBDiff : Creating new global database migration and fills by libTargomanDBCompare (store in /migrations/db/)
                     CreateLocal  : Creating new local migration (store in /migrations/local/)
                     List         : List of unapplied migrations
                     History      : List of applied migrations
@@ -110,8 +110,29 @@ tmplConfigurable<QString> AppConfigs::ApplyToAllSourceName(
     enuConfigSource::Arg | enuConfigSource::File
 );
 
-/*
+tmplConfigurable<bool> AppConfigs::DBOnly(
+    AppConfigs::makeConfig("DBOnly"),
+    "Only db migrations",
+    false,
+    ReturnTrueCrossValidator(),
+    "",
+    "",
+    "db-only",
+    enuConfigSource::Arg
+);
 
+tmplConfigurable<bool> AppConfigs::LocalOnly(
+    AppConfigs::makeConfig("LocalOnly"),
+    "Only local migrations",
+    false,
+    ReturnTrueCrossValidator(),
+    "",
+    "",
+    "local-only",
+    enuConfigSource::Arg
+);
+
+/*
 tmplConfigurable<QString> AppConfigs::BasePath(
     AppConfigs::makeConfig("BasePath"),
     "Base path",
