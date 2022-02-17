@@ -34,17 +34,17 @@ using namespace Targoman::Common::Configuration;
 namespace Targoman::Migrate {
 
 TARGOMAN_DEFINE_ENHANCED_ENUM(enuAppCommand,
-                              ShowConf,
-                              CreateDB,
-                              CreateDBDiff,
-                              CreateLocal,
-                              List,
-                              History,
-                              Up,
-//                              Down,
-//                              Redo,
-//                              Fresh,
-                              Mark
+                              showconf,
+                              createdb,
+                              createdbdiff,
+                              createlocal,
+                              list,
+                              history,
+                              up,
+//                              down,
+//                              redo,
+//                              fresh,
+                              mark
                               );
 
 #pragma clang diagnostic push

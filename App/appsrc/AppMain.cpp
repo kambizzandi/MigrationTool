@@ -105,47 +105,47 @@ void AppMain::slotExecute()
 
         switch (AppConfigs::Command.value())
         {
-            case enuAppCommand::ShowConf:
+            case enuAppCommand::showconf:
                 ActionShowConf();
                 break;
 
-            case enuAppCommand::CreateDB:
+            case enuAppCommand::createdb:
                 ActionCreateDB();
                 break;
 
-            case enuAppCommand::CreateDBDiff:
+            case enuAppCommand::createdbdiff:
                 ActionCreateDBDiff();
                 break;
 
-            case enuAppCommand::CreateLocal:
+            case enuAppCommand::createlocal:
                 ActionCreateLocal();
                 break;
 
-            case enuAppCommand::List:
+            case enuAppCommand::list:
                 ActionList();
                 break;
 
-            case enuAppCommand::History:
+            case enuAppCommand::history:
                 ActionHistory();
                 break;
 
-            case enuAppCommand::Up:
+            case enuAppCommand::up:
                 ActionUp();
                 break;
 
-//            case enuAppCommand::Down:
+//            case enuAppCommand::down:
 //                ActionDown();
 //                break;
 
-//            case enuAppCommand::Redo:
+//            case enuAppCommand::redo:
 //                ActionRedo();
 //                break;
 
-//            case enuAppCommand::Fresh:
+//            case enuAppCommand::fresh:
 //                ActionFresh();
 //                break;
 
-            case enuAppCommand::Mark:
+            case enuAppCommand::mark:
                 ActionMark();
                 break;
 
@@ -1711,7 +1711,7 @@ void AppMain::ActionMark(bool _showHelp)
         }
     }
 
-    qInfo() << "Marking migrations as applied:";
+    qInfo() << "Marked migrations as applied:";
     qInfo() << _line_splitter;
 
     int idx = 1;
@@ -1733,7 +1733,7 @@ void AppMain::ActionMark(bool _showHelp)
 
         RunMigrationFile(MigrationFile, false);
 
-        qStdout() << "Marked" << endl;
+        qStdout() << "Ok" << endl;
 
         --RemainCount;
         if (RemainCount <= 0)
@@ -1753,7 +1753,7 @@ void AppMain::ActionShowConf()
 
     qInfo().noquote()
             << QString("Source").leftJustified(20)
-            << "Schemas"
+            << "Databases"
             << endl
             << QString(100, '-')
             ;

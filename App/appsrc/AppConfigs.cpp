@@ -36,16 +36,16 @@ using namespace Targoman::Common::Configuration;
 tmplConfigurable<enuAppCommand::Type> AppConfigs::Command(
     AppConfigs::makeConfig("Command"),
     R"(Application command:
-                    ShowConf    : Show Migrations Config
-                    CreateDB    : Creating new global migration (store in /migrations/db/)
-                    CreateLocal : Creating new local migration (store in /migrations/local/)
-                    List        : List of unapplied migrations
-                    History     : List of applied migrations
-                    Up          : Apply unapplied migrations
-                    Mark        : Set migrations as applied to the specified point (not actually run migrations)
+                    showconf    : Show Migrations Config
+                    createdb    : Creating new global migration (store in /migrations/db/)
+                    createlocal : Creating new local migration (store in /migrations/local/)
+                    list        : List of unapplied migrations
+                    history     : List of applied migrations
+                    up          : Apply unapplied migrations
+                    mark        : Set migrations as applied to the specified point (not actually run migrations)
 )",
-//        Down            : Rollback applied migrations
-    enuAppCommand::List,
+//        down            : Rollback applied migrations
+    enuAppCommand::list,
     ReturnTrueCrossValidator(),
     "",
     "COMMAND",
