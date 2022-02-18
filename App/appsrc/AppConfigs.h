@@ -24,33 +24,9 @@
 #ifndef TARGOMAN_MIGRATE_APPCONFIGS_H
 #define TARGOMAN_MIGRATE_APPCONFIGS_H
 
-#include <QHostAddress>
-#include <QVariantMap>
-#include "libTargomanCommon/Macros.h"
-#include "libTargomanCommon/Configuration/tmplConfigurable.h"
-#include "libTargomanCommon/Configuration/tmplConfigurableArray.hpp"
-using namespace Targoman::Common::Configuration;
+#include "Defs.h"
 
 namespace Targoman::Migrate {
-
-TARGOMAN_DEFINE_ENHANCED_ENUM(enuAppCommand,
-                              showconf,
-                              createdb,
-                              createdbdiff,
-                              createlocal,
-                              list,
-                              history,
-                              up,
-//                              down,
-//                              redo,
-//                              fresh,
-                              mark
-                              );
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wweak-vtables"
-TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanMigrate, Targoman::Common::exTargomanBase);
-#pragma clang diagnostic pop
 
 //struct stuServers
 //{
@@ -162,86 +138,9 @@ PWD: /targoman
 
 */
 
-struct stuMigrationDB
-{
-    tmplConfigurable<QString>  Host;
-    tmplConfigurable<QString>  Port;
-    tmplConfigurable<QString>  UserName;
-    tmplConfigurable<QString>  Password;
-    tmplConfigurable<QString>  Schema;
-
-    stuMigrationDB(const QString &_basePath) :
-        Host(
-            _basePath + "Host",
-            "",
-            ""
-        ),
-        Port(
-            _basePath + "Port",
-            "",
-            ""
-        ),
-        UserName(
-            _basePath + "UserName",
-            "",
-            ""
-        ),
-        Password(
-            _basePath + "Password",
-            "",
-            ""
-        ),
-        Schema(
-            _basePath + "Schema",
-            "",
-            ""
-        )
-    {}
-
-    void setFromVariant(const QVariant &_value)
-    {
-    }
-
-    QVariant toVariant() const
-    {
-        return ""; //"stuMigrationDB";
-    }
-};
-
-struct stuMigrationSource
-{
-    // ./migrations/{Name}/db/{DBSchema}/mYYYYMMDD_HHMMSS.sh
-    // ./migrations/{Name}/local/mYYYYMMDD_HHMMSS.sh
-    // ./migrations/{Name}/local/.migrations
-    tmplConfigurable<QString>               Name;
-    tmplConfigurableArray<stuMigrationDB>   DB;
-
-    stuMigrationSource(const QString &_basePath) :
-        Name(
-            _basePath + "Name",
-            "Name of the source. will be used in migrations path : ./migrations/{Name}/...",
-            ""
-        ),
-        DB(
-            _basePath + "DB",
-            "Database information of source",
-            1
-        )
-    {}
-
-    void setFromVariant(const QVariant &_value)
-    {
-    }
-
-    QVariant toVariant() const
-    {
-        return ""; //"stuMigrationSource";
-    }
-};
-
 struct AppConfigs
 {
-    static inline QString makeConfig(const QString& _name) { return "/Migrate/" + _name; }
+    static inline QString makeConfig(const QString& _name) { return "/App/" + _name; }
 
     static tmplConfigurable<enuAppCommand::Type>        Command;
     static tmplConfigurable<QString>                    MigrationsFolderName;
@@ -252,6 +151,8 @@ struct AppConfigs
 
     static tmplConfigurable<bool>                       DBOnly;
     static tmplConfigurable<bool>                       LocalOnly;
+
+    static tmplConfigurable<QString>                    DefaultEditor;
 
 
 //    static tmplConfigurable<QString>                    BasePath;

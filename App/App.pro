@@ -12,12 +12,16 @@ include($$QBUILD_PATH/templates/innerAppConfigs.pri)
 # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-#
 HEADERS += \
     appsrc/AppConfigs.h \
-    appsrc/AppMain.h
+    appsrc/CommandManager.h \
+    appsrc/Commands/cmdList.h \
+    appsrc/Defs.h \
+    appsrc/intfCommand.h
 
 # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-#
 SOURCES += \
     appsrc/AppConfigs.cpp \
-    appsrc/AppMain.cpp \
+    appsrc/CommandManager.cpp \
+    appsrc/Commands/cmdList.cpp \
     appsrc/main.cpp
 
 OTHER_FILES +=

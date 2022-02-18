@@ -21,36 +21,19 @@
  * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
-#ifndef TARGOMAN_MIGRATE_APPMAIN_H
-#define TARGOMAN_MIGRATE_APPMAIN_H
+#ifndef TARGOMAN_MIGRATE_INTFCOMMAND_H
+#define TARGOMAN_MIGRATE_INTFCOMMAND_H
 
-#include <QObject>
+#include "Defs.h"
 
 namespace Targoman::Migrate {
 
-class AppMain : public QObject
+class intfCommand
 {
-    Q_OBJECT
-
 public:
-    explicit AppMain(QObject *parent = nullptr);
-
-    void ActionShowConf();
-    void ActionCreateDB(bool _showHelp=false);
-    void ActionCreateDBDiff(bool _showHelp=false);
-    void ActionCreateLocal(bool _showHelp=false);
-    void ActionList(bool _showHelp=false);
-    void ActionHistory(bool _showHelp=false);
-    void ActionUp(bool _showHelp=false);
-    void ActionMark(bool _showHelp=false);
-//    void ActionDown(bool _showHelp=false);
-//    void ActionRedo(bool _showHelp=false);
-//    void ActionFresh(bool _showHelp=false);
-
-public slots:
-    void slotExecute();
+    virtual void run() = 0;
 };
 
-} //namespace Targoman::Migrate
+} // namespace Targoman::Migrate
 
-#endif // TARGOMAN_MIGRATE_APPMAIN_H
+#endif // TARGOMAN_MIGRATE_INTFCOMMAND_H

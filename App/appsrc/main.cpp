@@ -27,7 +27,7 @@
 #include "libTargomanCommon/Macros.h"
 #include "libTargomanCommon/Configuration/ConfigManager.h"
 
-#include "AppMain.h"
+#include "CommandManager.h"
 
 static const char* LicenseStr =
 "%1 Ver: %2 Build %3\n"
@@ -54,7 +54,7 @@ int main(int _argc, char *_argv[])
                     );
 #pragma GCC diagnostic pop
 
-        QTimer::singleShot(10, new AppMain, SLOT(slotExecute()));
+        QTimer::singleShot(10, new CommandManager, SLOT(slotExecute()));
 
         return App.exec();
     }

@@ -29,22 +29,19 @@ namespace Targoman::Migrate {
 using namespace Targoman::Common;
 using namespace Targoman::Common::Configuration;
 
-//QString AppConfigs::BasePathWithVersion;
-//TAPI::stuStatistics gServerStats;
-
-//CreateDBDiff : Creating new global database migration and fills by libTargomanDBCompare (store in /migrations/db/)
 tmplConfigurable<enuAppCommand::Type> AppConfigs::Command(
     AppConfigs::makeConfig("Command"),
     R"(Application command:
                     showconf    : Show Migrations Config
-                    createdb    : Creating new global migration (store in /migrations/db/)
-                    createlocal : Creating new local migration (store in /migrations/local/)
+                    createdb    : Creating new global migration (store in /migrations/.../db/)
+                    createlocal : Creating new local migration (store in /migrations/.../local/)
                     list        : List of unapplied migrations
                     history     : List of applied migrations
-                    up          : Apply unapplied migrations
+                    commit      : Apply unapplied migrations
                     mark        : Set migrations as applied to the specified point (not actually run migrations)
 )",
-//        down            : Rollback applied migrations
+//createdbdiff      : Creating new global database migration and fills by libTargomanDBCompare (store in /migrations/db/)
+//rollback          : Rollback applied migrations
     enuAppCommand::list,
     ReturnTrueCrossValidator(),
     "",
@@ -131,6 +128,17 @@ tmplConfigurable<bool> AppConfigs::LocalOnly(
     "",
     "local-only",
     enuConfigSource::Arg
+);
+
+tmplConfigurable<QString> AppConfigs::DefaultEditor(
+    AppConfigs::makeConfig("DefaultEditor"),
+    "Default text editor",
+    "vim",
+    ReturnTrueCrossValidator(),
+    "",
+    "EDITOR",
+    "default-editor",
+    enuConfigSource::Arg | enuConfigSource::File
 );
 
 /*

@@ -23,7 +23,7 @@
 
 #include <iostream>
 
-#include "AppMain.h"
+#include "CommandManager.h"
 #include "AppConfigs.h"
 #include "libTargomanCommon/Configuration/ConfigManager.h"
 #include "libTargomanDBM/clsDAC.h"
@@ -38,9 +38,9 @@ using namespace Targoman::DBManager;
 
 namespace Targoman::Migrate {
 
-constexpr char _line_splitter[] = "------------------------------------------------------------------------";
-constexpr char _regex_pattern_migration_filename[]     = "m[0-9]{8}_[0-9]{6}_[a-zA-Z0-9-_]*.(sh|sql)";
-constexpr char _regex_pattern_migration_log_filename[] = "m[0-9]{8}_[0-9]{6}_[a-zA-Z0-9-_]*.(sh|sql).log";
+constexpr char LINE_SPLITTER[] = "------------------------------------------------------------------------";
+constexpr char REGEX_PATTERN_MIGRATION_FILENAME[]     = "m[0-9]{8}_[0-9]{6}_[a-zA-Z0-9-_]*.(sh|sql)";
+constexpr char REGEX_PATTERN_MIGRATION_LOG_FILENAME[] = "m[0-9]{8}_[0-9]{6}_[a-zA-Z0-9-_]*.(sh|sql).log";
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -71,11 +71,24 @@ inline QTextStream& qStdIn()
     return rIN;
 }
 
-AppMain::AppMain(QObject *parent) : QObject(parent)
+CommandManager::CommandManager(QObject *parent) : QObject(parent)
 {}
 
-void AppMain::slotExecute()
+void CommandManager::slotExecute()
 {
+    return;
+
+
+    QProcess EditorProcess;
+//    EditorProcess.start(AppConfigs::DefaultEditor.value(), QStringList() << FullFileName);
+    EditorProcess.start("/usr/bin/vim", QStringList() << "/home/user/Projects/TargomanMigrate/migrations/App/db/CommonFuncs/m20220218_002317_2.sql");
+    if (!EditorProcess.waitForFinished())
+        throw exTargomanBase("Execution of default editor failed");
+
+    QCoreApplication::exit(0);
+
+
+
     try
     {
         if (AppConfigs::Sources.size() == 0)
@@ -129,12 +142,12 @@ void AppMain::slotExecute()
                 ActionHistory();
                 break;
 
-            case enuAppCommand::up:
-                ActionUp();
+            case enuAppCommand::commit:
+                ActionCommit();
                 break;
 
-//            case enuAppCommand::down:
-//                ActionDown();
+//            case enuAppCommand::rollback:
+//                ActionRollback();
 //                break;
 
 //            case enuAppCommand::redo:
@@ -190,7 +203,7 @@ bool ChooseCreateMigrationProperties(
             << "    "
             << "Source"
             ;
-    qInfo() << _line_splitter;
+    qInfo() << LINE_SPLITTER;
 
     struct stuSourceInfo {
         QString SourceName;
@@ -399,7 +412,7 @@ bool ChooseCreateMigrationProperties(
     return true;
 }
 
-void AppMain::ActionCreateDB(bool _showHelp)
+void CommandManager::ActionCreateDB(bool _showHelp)
 {
     if (_showHelp)
     {
@@ -436,9 +449,15 @@ void AppMain::ActionCreateDB(bool _showHelp)
     File.close();
 
     qInfo().noquote() << "Empty migration file created successfully.";
+
+    QProcess EditorProcess;
+//    EditorProcess.start(AppConfigs::DefaultEditor.value(), QStringList() << FullFileName);
+    EditorProcess.start("/usr/bin/vim", QStringList() << FullFileName);
+    if (!EditorProcess.waitForFinished())
+        throw exTargomanBase("Execution of default editor failed");
 }
 
-void AppMain::ActionCreateDBDiff(bool _showHelp)
+void CommandManager::ActionCreateDBDiff(bool _showHelp)
 {
     if (_showHelp)
     {
@@ -509,7 +528,7 @@ void AppMain::ActionCreateDBDiff(bool _showHelp)
 //    qInfo().noquote() << "Migration file by diff created successfully.";
 }
 
-void AppMain::ActionCreateLocal(bool _showHelp)
+void CommandManager::ActionCreateLocal(bool _showHelp)
 {
     if (_showHelp)
     {
@@ -771,9 +790,9 @@ void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
                 {
                     QString FullFileName = itdb.next();
                     QString FileName = BaseFolder.relativeFilePath(FullFileName);
-                    if (QRegExp(_regex_pattern_migration_filename).exactMatch(FileName) == false)
+                    if (QRegExp(REGEX_PATTERN_MIGRATION_FILENAME).exactMatch(FileName) == false)
                     {
-                        if (QRegExp(_regex_pattern_migration_log_filename).exactMatch(FileName) == false)
+                        if (QRegExp(REGEX_PATTERN_MIGRATION_LOG_FILENAME).exactMatch(FileName) == false)
                             qDebug() << "invalid file name:" << FileName << "in" << BaseFolder.path();
                         continue;
                     }
@@ -795,12 +814,12 @@ void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
                 {
                     QString FullFileName = itlocal.next();
                     QString FileName = BaseFolder.relativeFilePath(FullFileName);
-                    if (QRegExp(_regex_pattern_migration_filename).exactMatch(FileName) == false)
+                    if (QRegExp(REGEX_PATTERN_MIGRATION_FILENAME).exactMatch(FileName) == false)
                     {
                         if (FileName != AppConfigs::LocalHistoryFileName.value())
 //                            _localHistoryFiles.insert(AppConfigs::ApplyToAllSourceName.value(), FullFileName);
 //                        else
-                            if (QRegExp(_regex_pattern_migration_log_filename).exactMatch(FileName) == false)
+                            if (QRegExp(REGEX_PATTERN_MIGRATION_LOG_FILENAME).exactMatch(FileName) == false)
                                 qDebug() << "invalid file name:" << FileName << "in" << BaseFolder.path();
 
                         continue;
@@ -887,9 +906,9 @@ void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
                             {
                                 QString FullFileName = itdb.next();
                                 QString FileName = BaseFolder.relativeFilePath(FullFileName);
-                                if (QRegExp(_regex_pattern_migration_filename).exactMatch(FileName) == false)
+                                if (QRegExp(REGEX_PATTERN_MIGRATION_FILENAME).exactMatch(FileName) == false)
                                 {
-                                    if (QRegExp(_regex_pattern_migration_log_filename).exactMatch(FileName) == false)
+                                    if (QRegExp(REGEX_PATTERN_MIGRATION_LOG_FILENAME).exactMatch(FileName) == false)
                                         qDebug() << "invalid file name:" << FileName << "in" << BaseFolder.path();
                                     continue;
                                 }
@@ -927,12 +946,12 @@ void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
                     {
                         QString FullFileName = itlocal.next();
                         QString FileName = BaseFolder.relativeFilePath(FullFileName);
-                        if (QRegExp(_regex_pattern_migration_filename).exactMatch(FileName) == false)
+                        if (QRegExp(REGEX_PATTERN_MIGRATION_FILENAME).exactMatch(FileName) == false)
                         {
                             if (FileName != AppConfigs::LocalHistoryFileName.value())
 //                                _localHistoryFiles.insert(Source.Name.value(), FullFileName);
 //                            else
-                                if (QRegExp(_regex_pattern_migration_log_filename).exactMatch(FileName) == false)
+                                if (QRegExp(REGEX_PATTERN_MIGRATION_LOG_FILENAME).exactMatch(FileName) == false)
                                     qDebug() << "invalid file name:" << FileName << "in" << BaseFolder.path();
 
                             continue;
@@ -1206,7 +1225,7 @@ void GetUnappliedMigrations()
 {
 }
 
-void AppMain::ActionList(bool _showHelp)
+void CommandManager::ActionList(bool _showHelp)
 {
     if (_showHelp)
     {
@@ -1219,7 +1238,7 @@ void AppMain::ActionList(bool _showHelp)
     }
 
     qInfo() << "Unapplied migrations:";
-    qInfo() << _line_splitter;
+    qInfo() << LINE_SPLITTER;
 
     SourceMigrationFileInfoMap MigrationFiles;
     ExtractMigrationFiles(MigrationFiles);
@@ -1238,7 +1257,7 @@ void AppMain::ActionList(bool _showHelp)
     qDebug() << "";
 }
 
-void AppMain::ActionHistory(bool _showHelp)
+void CommandManager::ActionHistory(bool _showHelp)
 {
     if (_showHelp)
     {
@@ -1292,7 +1311,7 @@ void AppMain::ActionHistory(bool _showHelp)
     }
 
     qInfo() << "Applied migrations:";
-    qInfo() << _line_splitter;
+    qInfo() << LINE_SPLITTER;
     dump(MigrationFiles, true);
 }
 
@@ -1472,7 +1491,7 @@ void RunMigrationFile(const stuSourceMigrationFileInfo &_migrationFile, bool _ru
     }
 }
 
-void AppMain::ActionUp(bool _showHelp)
+void CommandManager::ActionCommit(bool _showHelp)
 {
     if (_showHelp)
     {
@@ -1564,7 +1583,7 @@ void AppMain::ActionUp(bool _showHelp)
     }
 
     qInfo() << "Applying migrations:";
-    qInfo() << _line_splitter;
+    qInfo() << LINE_SPLITTER;
 
     int idx = 1;
     foreach (auto MigrationFile, MigrationFiles)
@@ -1595,7 +1614,7 @@ void AppMain::ActionUp(bool _showHelp)
     qInfo() << "";
 }
 
-//void AppMain::ActionDown(bool _showHelp)
+//void CommandManager::ActionRollback(bool _showHelp)
 //{
 //    if (_showHelp)
 //    {
@@ -1606,15 +1625,15 @@ void AppMain::ActionUp(bool _showHelp)
 //    qInfo() << _line_splitter;
 //}
 
-//void AppMain::ActionRedo()
+//void CommandManager::ActionRedo()
 //{
 //}
 
-//void AppMain::ActionFresh()
+//void CommandManager::ActionFresh()
 //{
 //}
 
-void AppMain::ActionMark(bool _showHelp)
+void CommandManager::ActionMark(bool _showHelp)
 {
     if (_showHelp)
     {
@@ -1712,7 +1731,7 @@ void AppMain::ActionMark(bool _showHelp)
     }
 
     qInfo() << "Marked migrations as applied:";
-    qInfo() << _line_splitter;
+    qInfo() << LINE_SPLITTER;
 
     int idx = 1;
     foreach (auto MigrationFile, MigrationFiles)
@@ -1743,7 +1762,7 @@ void AppMain::ActionMark(bool _showHelp)
     qInfo() << "";
 }
 
-void AppMain::ActionShowConf()
+void CommandManager::ActionShowConf()
 {
     if (AppConfigs::Sources.size() == 0)
     {
