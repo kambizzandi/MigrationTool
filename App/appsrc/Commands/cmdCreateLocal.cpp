@@ -21,25 +21,53 @@
  * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
-#ifndef TARGOMAN_MIGRATE_COMMANDMANAGER_H
-#define TARGOMAN_MIGRATE_COMMANDMANAGER_H
+#include "cmdCreateLocal.h"
+#include "../Configs.h"
 
-#include "Defs.h"
-#include <QObject>
+namespace Targoman::Migrate::Commands {
 
-namespace Targoman::Migrate {
-
-class CommandManager : public QObject
+cmdCreateLocal::cmdCreateLocal()
 {
-    Q_OBJECT
+}
 
-public:
-    explicit CommandManager(QObject *parent = nullptr);
+void cmdCreateLocal::run(bool _showHelp)
+{
+    if (_showHelp)
+    {
+        return;
+    }
 
-public slots:
-    void slotExecute();
-};
+    QString FileName;
+    QString FullFileName;
 
-} //namespace Targoman::Migrate
+    if (ChooseCreateMigrationProperties(
+                enuChooseCreateMigrationScope::local,
+                FileName,
+                FullFileName
+                ) == false)
+        return;
 
-#endif // TARGOMAN_MIGRATE_COMMANDMANAGER_H
+    qInfo().noquote().nospace() << "Creating new migration file: " << FullFileName;
+
+    QFile File(FullFileName);
+    if (File.open(QFile::WriteOnly | QFile::Text) == false)
+    {
+        qInfo() << "Could not create new migration file.";
+        return;
+    }
+
+    QTextStream writer(&File);
+    writer
+        << "#!/bin/bash"
+        << endl
+        << "# Migration File: "
+        << FileName
+        << endl
+        << endl
+        ;
+    File.close();
+
+    qInfo().noquote() << "Empty migration file created successfully.";
+}
+
+} // namespace Targoman::Migrate::Commands

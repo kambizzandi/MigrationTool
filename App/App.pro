@@ -11,17 +11,32 @@ include($$QBUILD_PATH/templates/innerAppConfigs.pri)
 
 # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-#
 HEADERS += \
-    appsrc/AppConfigs.h \
     appsrc/CommandManager.h \
+    appsrc/Commands/Common.h \
+    appsrc/Commands/cmdCommit.h \
+    appsrc/Commands/cmdCreateDB.h \
+    appsrc/Commands/cmdCreateDBDiff.h \
+    appsrc/Commands/cmdCreateLocal.h \
+    appsrc/Commands/cmdHistory.h \
     appsrc/Commands/cmdList.h \
+    appsrc/Commands/cmdMark.h \
+    appsrc/Commands/cmdShowConf.h \
+    appsrc/Configs.h \
     appsrc/Defs.h \
-    appsrc/intfCommand.h
+    appsrc/Commands/intfCommand.h
 
 # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-#
 SOURCES += \
-    appsrc/AppConfigs.cpp \
     appsrc/CommandManager.cpp \
+    appsrc/Commands/cmdCommit.cpp \
+    appsrc/Commands/cmdCreateDB.cpp \
+    appsrc/Commands/cmdCreateDBDiff.cpp \
+    appsrc/Commands/cmdCreateLocal.cpp \
+    appsrc/Commands/cmdHistory.cpp \
     appsrc/Commands/cmdList.cpp \
+    appsrc/Commands/cmdMark.cpp \
+    appsrc/Commands/cmdShowConf.cpp \
+    appsrc/Configs.cpp \
     appsrc/main.cpp
 
 OTHER_FILES +=

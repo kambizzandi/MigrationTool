@@ -33,6 +33,10 @@ using namespace Targoman::Common::Configuration;
 
 namespace Targoman::Migrate {
 
+#define instanceGetterPtr(_class) static _class* instancePtr() { \
+    static _class* Instance = nullptr; return (Q_LIKELY(Instance) ? Instance : (Instance = new _class)); \
+}
+
 TARGOMAN_DEFINE_ENHANCED_ENUM(enuAppCommand,
                               showconf,
                               createdb,
@@ -46,6 +50,10 @@ TARGOMAN_DEFINE_ENHANCED_ENUM(enuAppCommand,
 //                              fresh,
                               mark
                               );
+
+constexpr char LINE_SPLITTER[] = "------------------------------------------------------------------------";
+constexpr char REGEX_PATTERN_MIGRATION_FILENAME[]     = "m[0-9]{8}_[0-9]{6}_[a-zA-Z0-9-_]*.(sh|sql)";
+constexpr char REGEX_PATTERN_MIGRATION_LOG_FILENAME[] = "m[0-9]{8}_[0-9]{6}_[a-zA-Z0-9-_]*.(sh|sql).log";
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wweak-vtables"
@@ -128,6 +136,27 @@ struct stuMigrationSource
         return ""; //"stuMigrationSource";
     }
 };
+
+inline QString bold(const QString &_s)
+{
+    return QString("\x1b[1m%1\x1b[0m").arg(_s);
+}
+
+inline QString reverse(const QString &_s)
+{
+    return QString("\x1b[7m%1\x1b[0m").arg(_s);
+}
+
+inline QTextStream& qStdout()
+{
+    static QTextStream rOUT{stdout};
+    return rOUT;
+}
+inline QTextStream& qStdIn()
+{
+    static QTextStream rIN{stdin};
+    return rIN;
+}
 
 } // namespace Targoman::Migrate
 

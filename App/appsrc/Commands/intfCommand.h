@@ -24,16 +24,18 @@
 #ifndef TARGOMAN_MIGRATE_INTFCOMMAND_H
 #define TARGOMAN_MIGRATE_INTFCOMMAND_H
 
-#include "Defs.h"
+#include "../Defs.h"
+#include "Common.h"
 
-namespace Targoman::Migrate {
+namespace Targoman::Migrate::Commands {
 
 class intfCommand
 {
 public:
-    virtual void run() = 0;
+    virtual bool needDB() = 0;
+    virtual void run(bool _showHelp = false) = 0;
 };
 
-} // namespace Targoman::Migrate
+} // namespace Targoman::Migrate::Commands
 
 #endif // TARGOMAN_MIGRATE_INTFCOMMAND_H

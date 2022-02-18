@@ -21,8 +21,8 @@
  * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
-#ifndef TARGOMAN_MIGRATE_APPCONFIGS_H
-#define TARGOMAN_MIGRATE_APPCONFIGS_H
+#ifndef TARGOMAN_MIGRATE_CONFIGS_H
+#define TARGOMAN_MIGRATE_CONFIGS_H
 
 #include "Defs.h"
 
@@ -138,7 +138,7 @@ PWD: /targoman
 
 */
 
-struct AppConfigs
+struct Configs
 {
     static inline QString makeConfig(const QString& _name) { return "/App/" + _name; }
 
@@ -245,4 +245,4 @@ template <> inline QVariant Targoman::Common::Configuration::tmplConfigurableArr
 //    return doc.toJson();
 }
 
-#endif // TARGOMAN_MIGRATE_APPCONFIGS_H
+#endif // TARGOMAN_MIGRATE_CONFIGS_H

@@ -21,43 +21,50 @@
  * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
-#include "cmdList.h"
+#include "cmdShowConf.h"
 #include "../Configs.h"
 
 namespace Targoman::Migrate::Commands {
 
-cmdList::cmdList()
+cmdShowConf::cmdShowConf()
 {
 }
 
-void cmdList::run(bool _showHelp)
+void cmdShowConf::run(bool _showHelp)
 {
-    if (_showHelp)
+    if (Configs::Sources.size() == 0)
     {
-        qInfo() << "List of unapplied migrations";
-//        qInfo() << _line_splitter;
-//        qInfo() << "./targomanMigrate" << "List     : showing the first 10 new migrations";
-//        qInfo() << "./targomanMigrate" << "List 5   : showing the first 5 new migrations";
-//        qInfo() << "./targomanMigrate" << "List all : showing all new migrations";
+        qInfo() << "nothing to show";
         return;
     }
 
-    qInfo() << "Unapplied migrations:";
-    qInfo() << LINE_SPLITTER;
+    qInfo().noquote()
+            << QString("Source").leftJustified(20)
+            << "Databases"
+            << endl
+            << QString(100, '-')
+            ;
 
-    SourceMigrationFileInfoMap MigrationFiles;
-    ExtractMigrationFiles(MigrationFiles);
-//    qDebug() << "** All MigrationFiles ******************************";
-//    dump(MigrationFiles);
+    for (size_t idxSource=0; idxSource<Configs::Sources.size(); idxSource++)
+    {
+        stuMigrationSource &Source = Configs::Sources[idxSource];
 
-    MigrationHistoryMap MigrationHistories;
-    ExtractMigrationHistories(MigrationHistories);
-//    qDebug() << "** MigrationHistories ******************************";
-//    dump(MigrationHistories);
+        QStringList DBs;
+        if (Source.DB.size() > 0)
+        {
+            for (size_t idxDB=0; idxDB<Source.DB.size(); idxDB++)
+            {
+                stuMigrationDB &DB = Source.DB[idxDB];
 
-    RemoveAppliedFromList(MigrationFiles, MigrationHistories);
-//    qDebug() << "** Unapplied MigrationFiles ******************************";
-    dump(MigrationFiles);
+                DBs.append(DB.Schema.value());
+            }
+        }
+
+        qInfo().noquote()
+                << Source.Name.value().leftJustified(20)
+                << DBs.join(", ")
+                ;
+    }
 
     qInfo() << "";
 }

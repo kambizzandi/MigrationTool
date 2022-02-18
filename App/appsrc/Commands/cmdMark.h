@@ -21,25 +21,24 @@
  * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
-#ifndef TARGOMAN_MIGRATE_COMMANDMANAGER_H
-#define TARGOMAN_MIGRATE_COMMANDMANAGER_H
+#ifndef TARGOMAN_MIGRATE_CMDMARK_H
+#define TARGOMAN_MIGRATE_CMDMARK_H
 
-#include "Defs.h"
-#include <QObject>
+#include "../Defs.h"
+#include "intfCommand.h"
 
-namespace Targoman::Migrate {
+namespace Targoman::Migrate::Commands {
 
-class CommandManager : public QObject
+class cmdMark : public intfCommand
 {
-    Q_OBJECT
-
 public:
-    explicit CommandManager(QObject *parent = nullptr);
+    instanceGetterPtr(cmdMark);
+    cmdMark();
 
-public slots:
-    void slotExecute();
+    virtual bool needDB() { return true; }
+    virtual void run(bool _showHelp = false);
 };
 
-} //namespace Targoman::Migrate
+} // namespace Targoman::Migrate::Commands
 
-#endif // TARGOMAN_MIGRATE_COMMANDMANAGER_H
+#endif // TARGOMAN_MIGRATE_CMDMARK_H

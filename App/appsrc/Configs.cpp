@@ -21,7 +21,7 @@
  * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
-#include "AppConfigs.h"
+#include "Configs.h"
 #include "libTargomanCommon/Configuration/Validators.hpp"
 
 namespace Targoman::Migrate {
@@ -29,8 +29,8 @@ namespace Targoman::Migrate {
 using namespace Targoman::Common;
 using namespace Targoman::Common::Configuration;
 
-tmplConfigurable<enuAppCommand::Type> AppConfigs::Command(
-    AppConfigs::makeConfig("Command"),
+tmplConfigurable<enuAppCommand::Type> Configs::Command(
+    Configs::makeConfig("Command"),
     R"(Application command:
                     showconf    : Show Migrations Config
                     createdb    : Creating new global migration (store in /migrations/.../db/)
@@ -50,8 +50,8 @@ tmplConfigurable<enuAppCommand::Type> AppConfigs::Command(
     enuConfigSource::Arg
 );
 
-tmplConfigurable<QString> AppConfigs::MigrationsFolderName(
-    AppConfigs::makeConfig("MigrationsFolderName"),
+tmplConfigurable<QString> Configs::MigrationsFolderName(
+    Configs::makeConfig("MigrationsFolderName"),
     "Relative folder name for creating migration files",
     "migrations",
     ReturnTrueCrossValidator(),
@@ -65,8 +65,8 @@ tmplConfigurable<QString> AppConfigs::MigrationsFolderName(
     enuConfigSource::Arg | enuConfigSource::File
 );
 
-tmplConfigurable<QString> AppConfigs::GlobalHistoryTableName(
-    AppConfigs::makeConfig("GlobalHistoryTableName"),
+tmplConfigurable<QString> Configs::GlobalHistoryTableName(
+    Configs::makeConfig("GlobalHistoryTableName"),
     "Table name for storing global migration history",
     "tblMigrations",
     ReturnTrueCrossValidator(),
@@ -76,8 +76,8 @@ tmplConfigurable<QString> AppConfigs::GlobalHistoryTableName(
     enuConfigSource::Arg | enuConfigSource::File
 );
 
-tmplConfigurable<QString> AppConfigs::LocalHistoryFileName(
-    AppConfigs::makeConfig("LocalHistoryFileName"),
+tmplConfigurable<QString> Configs::LocalHistoryFileName(
+    Configs::makeConfig("LocalHistoryFileName"),
     "File name for storing local migration history",
     ".migrations",
     ReturnTrueCrossValidator(),
@@ -91,14 +91,14 @@ tmplConfigurable<QString> AppConfigs::LocalHistoryFileName(
     enuConfigSource::Arg | enuConfigSource::File
 );
 
-tmplConfigurableArray<stuMigrationSource> AppConfigs::Sources(
-    AppConfigs::makeConfig("Sources"),
+tmplConfigurableArray<stuMigrationSource> Configs::Sources(
+    Configs::makeConfig("Sources"),
     "Sources of migrations",
     1
 );
 
-tmplConfigurable<QString> AppConfigs::ApplyToAllSourceName(
-    AppConfigs::makeConfig("ApplyToAllSourceName"),
+tmplConfigurable<QString> Configs::ApplyToAllSourceName(
+    Configs::makeConfig("ApplyToAllSourceName"),
     "Source name for migrations set that must applied to the all other sources",
     "TargomanMigrate",
     ReturnTrueCrossValidator(),
@@ -108,8 +108,8 @@ tmplConfigurable<QString> AppConfigs::ApplyToAllSourceName(
     enuConfigSource::Arg | enuConfigSource::File
 );
 
-tmplConfigurable<bool> AppConfigs::DBOnly(
-    AppConfigs::makeConfig("DBOnly"),
+tmplConfigurable<bool> Configs::DBOnly(
+    Configs::makeConfig("DBOnly"),
     "Only db migrations",
     false,
     ReturnTrueCrossValidator(),
@@ -119,8 +119,8 @@ tmplConfigurable<bool> AppConfigs::DBOnly(
     enuConfigSource::Arg
 );
 
-tmplConfigurable<bool> AppConfigs::LocalOnly(
-    AppConfigs::makeConfig("LocalOnly"),
+tmplConfigurable<bool> Configs::LocalOnly(
+    Configs::makeConfig("LocalOnly"),
     "Only local migrations",
     false,
     ReturnTrueCrossValidator(),
@@ -130,8 +130,8 @@ tmplConfigurable<bool> AppConfigs::LocalOnly(
     enuConfigSource::Arg
 );
 
-tmplConfigurable<QString> AppConfigs::DefaultEditor(
-    AppConfigs::makeConfig("DefaultEditor"),
+tmplConfigurable<QString> Configs::DefaultEditor(
+    Configs::makeConfig("DefaultEditor"),
     "Default text editor",
     "vim",
     ReturnTrueCrossValidator(),
@@ -142,8 +142,8 @@ tmplConfigurable<QString> AppConfigs::DefaultEditor(
 );
 
 /*
-tmplConfigurable<QString> AppConfigs::BasePath(
-    AppConfigs::makeConfig("BasePath"),
+tmplConfigurable<QString> Configs::BasePath(
+    Configs::makeConfig("BasePath"),
     "Base path",
     "",
     ReturnTrueCrossValidator(),
@@ -153,8 +153,8 @@ tmplConfigurable<QString> AppConfigs::BasePath(
     enuConfigSource::Arg | enuConfigSource::File
 );
 
-tmplConfigurable<QString> AppConfigs::Version(
-        AppConfigs::makeConfig("Version"),
+tmplConfigurable<QString> Configs::Version(
+        Configs::makeConfig("Version"),
         "REST API version to be appended to base path",
         "v1",
         ReturnTrueCrossValidator(),
@@ -164,8 +164,8 @@ tmplConfigurable<QString> AppConfigs::Version(
         enuConfigSource::Arg | enuConfigSource::File);
 
 
-tmplRangedConfigurable<quint16> AppConfigs::ListenPort(
-        AppConfigs::makeConfig("ListenPort"),
+tmplRangedConfigurable<quint16> Configs::ListenPort(
+        Configs::makeConfig("ListenPort"),
         "Listen port for main REST server",
         1000,65000,
         10000,
@@ -175,8 +175,8 @@ tmplRangedConfigurable<quint16> AppConfigs::ListenPort(
         "listen-port",
         enuConfigSource::Arg | enuConfigSource::File);
 
-tmplRangedConfigurable<quint8> AppConfigs::StatisticsInterval(
-        AppConfigs::makeConfig("StatisticsInterval"),
+tmplRangedConfigurable<quint8> Configs::StatisticsInterval(
+        Configs::makeConfig("StatisticsInterval"),
         "Listen port for main REST server",
         1,60,
         10,
@@ -186,8 +186,8 @@ tmplRangedConfigurable<quint8> AppConfigs::StatisticsInterval(
         "stats-interval",
         enuConfigSource::Arg | enuConfigSource::File);
 
-tmplConfigurable<bool> AppConfigs::IndentedJson(
-        AppConfigs::makeConfig("IndentedJson"),
+tmplConfigurable<bool> Configs::IndentedJson(
+        Configs::makeConfig("IndentedJson"),
         "If set to true Json outputs will be indented",
         false,
         ReturnTrueCrossValidator(),
@@ -196,8 +196,8 @@ tmplConfigurable<bool> AppConfigs::IndentedJson(
         "indented-json",
         enuConfigSource::Arg | enuConfigSource::File);
 
-tmplConfigurable<bool> AppConfigs::MultiThreaded(
-        AppConfigs::makeConfig("MultiThreaded"),
+tmplConfigurable<bool> Configs::MultiThreaded(
+        Configs::makeConfig("MultiThreaded"),
         "If set to false then application will run in single-threaded mode and will be blocked on time-consuming API calls",
         true,
         ReturnTrueCrossValidator(),
@@ -206,8 +206,8 @@ tmplConfigurable<bool> AppConfigs::MultiThreaded(
         "",
         enuConfigSource::File);
 
-tmplRangedConfigurable<qint32> AppConfigs::APICallTimeout(
-        AppConfigs::makeConfig("APICallTimeout"),
+tmplRangedConfigurable<qint32> Configs::APICallTimeout(
+        Configs::makeConfig("APICallTimeout"),
         "default timeout for API Calls. It can be reconfigured on each API Call. set to -1 for infinite",
         -1, 60 * 1000,
         -1,
@@ -217,8 +217,8 @@ tmplRangedConfigurable<qint32> AppConfigs::APICallTimeout(
         "default-api-timeout",
         enuConfigSource::Arg | enuConfigSource::File);
 
-tmplRangedConfigurable<qint64> AppConfigs::MaxUploadSize(
-        AppConfigs::makeConfig("MaxUploadSize"),
+tmplRangedConfigurable<qint64> Configs::MaxUploadSize(
+        Configs::makeConfig("MaxUploadSize"),
         "Max Upload size for any type of request",
         10*1024, 10*1024*1024,
         10*1024*1024,
@@ -228,8 +228,8 @@ tmplRangedConfigurable<qint64> AppConfigs::MaxUploadSize(
         "max-upload-size",
         enuConfigSource::Arg | enuConfigSource::File);
 
-tmplRangedConfigurable<quint32> AppConfigs::FileMaxChunk(
-        AppConfigs::makeConfig("FileMaxChunk"),
+tmplRangedConfigurable<quint32> Configs::FileMaxChunk(
+        Configs::makeConfig("FileMaxChunk"),
         "Max file size to send on each chunk.",
         10*1024, 10*1024*1024,
         10*1024,
@@ -239,8 +239,8 @@ tmplRangedConfigurable<quint32> AppConfigs::FileMaxChunk(
         "chunk-size",
         enuConfigSource::Arg | enuConfigSource::File);
 
-tmplRangedConfigurable<qint64> AppConfigs::MaxUploadedFileSize(
-        AppConfigs::makeConfig("MaxUploadedFileSize"),
+tmplRangedConfigurable<qint64> Configs::MaxUploadedFileSize(
+        Configs::makeConfig("MaxUploadedFileSize"),
         "Max Upload size for files",
         1*1024, 100*1024*1024,
         100*1024*1024,
@@ -250,8 +250,8 @@ tmplRangedConfigurable<qint64> AppConfigs::MaxUploadedFileSize(
         "max-file-upload-size",
         enuConfigSource::Arg | enuConfigSource::File);
 
-tmplRangedConfigurable<quint32> AppConfigs::MaxCachedItems(
-        AppConfigs::makeConfig("MaxCachedItems"),
+tmplRangedConfigurable<quint32> Configs::MaxCachedItems(
+        Configs::makeConfig("MaxCachedItems"),
         "Maximum API calls to be cached",
         0,65000,
         5000,
@@ -261,8 +261,8 @@ tmplRangedConfigurable<quint32> AppConfigs::MaxCachedItems(
         "max-cache-size",
         enuConfigSource::Arg | enuConfigSource::File);
 
-tmplConfigurable<QString> AppConfigs::CacheConnector(
-        AppConfigs::makeConfig("CacheConnector"),
+tmplConfigurable<QString> Configs::CacheConnector(
+        Configs::makeConfig("CacheConnector"),
         "Connection string to connect to Redis cache server",
         "",
         ReturnTrueCrossValidator(),
@@ -271,8 +271,8 @@ tmplConfigurable<QString> AppConfigs::CacheConnector(
         "cache-connector",
         enuConfigSource::Arg | enuConfigSource::File);
 
-tmplConfigurable<QString> AppConfigs::AccessControl(
-        AppConfigs::makeConfig("AccessControl"),
+tmplConfigurable<QString> Configs::AccessControl(
+        Configs::makeConfig("AccessControl"),
         "Default access control",
         "*",
         ReturnTrueCrossValidator(),
@@ -281,8 +281,8 @@ tmplConfigurable<QString> AppConfigs::AccessControl(
         "",
         enuConfigSource::File);
 
-tmplConfigurable<FilePath_t>     AppConfigs::BaseOpenAPIObjectFile(
-        AppConfigs::makeConfig("BaseOpenAPIObjectFile"),
+tmplConfigurable<FilePath_t>     Configs::BaseOpenAPIObjectFile(
+        Configs::makeConfig("BaseOpenAPIObjectFile"),
         "Input file path where default OpenAPI object file resides",
         "",
         Validators::tmplPathAccessValidator<
@@ -293,8 +293,8 @@ tmplConfigurable<FilePath_t>     AppConfigs::BaseOpenAPIObjectFile(
         "openapi-file",
         enuConfigSource::Arg | enuConfigSource::File);
 
-tmplConfigurable<FilePath_t>     AppConfigs::SwaggerUI(
-        AppConfigs::makeConfig("SwaggerUI"),
+tmplConfigurable<FilePath_t>     Configs::SwaggerUI(
+        Configs::makeConfig("SwaggerUI"),
         "Directory where swaggerUI files reside",
         "",
         Validators::tmplPathAccessValidator<
@@ -305,8 +305,8 @@ tmplConfigurable<FilePath_t>     AppConfigs::SwaggerUI(
         "swaggerui-path",
         enuConfigSource::Arg | enuConfigSource::File);
 
-tmplConfigurable<FilePath_t>     AppConfigs::PublicPath(
-        AppConfigs::makeConfig("PublicFolder"),
+tmplConfigurable<FilePath_t>     Configs::PublicPath(
+        Configs::makeConfig("PublicFolder"),
         "Directory static files are stored",
         "",
         Validators::tmplPathAccessValidator<
@@ -318,8 +318,8 @@ tmplConfigurable<FilePath_t>     AppConfigs::PublicPath(
         enuConfigSource::Arg | enuConfigSource::File);
 
 
-tmplConfigurable<QString> AppConfigs::MasterDB::Host(
-        AppConfigs::MasterDB::makeConfig("Host"),
+tmplConfigurable<QString> Configs::MasterDB::Host(
+        Configs::MasterDB::makeConfig("Host"),
         "Database Host address",
         "127.0.0.1",
         ReturnTrueCrossValidator(),
@@ -328,8 +328,8 @@ tmplConfigurable<QString> AppConfigs::MasterDB::Host(
         "db-host",
         enuConfigSource::Arg | enuConfigSource::File);
 
-tmplRangedConfigurable<quint16> AppConfigs::MasterDB::Port(
-        AppConfigs::MasterDB::makeConfig("Port"),
+tmplRangedConfigurable<quint16> Configs::MasterDB::Port(
+        Configs::MasterDB::makeConfig("Port"),
         "Database port",
         10, 65000,
         3306,
@@ -339,8 +339,8 @@ tmplRangedConfigurable<quint16> AppConfigs::MasterDB::Port(
         "db-port",
         enuConfigSource::Arg | enuConfigSource::File);
 
-tmplConfigurable<QString> AppConfigs::MasterDB::User(
-        AppConfigs::MasterDB::makeConfig("User"),
+tmplConfigurable<QString> Configs::MasterDB::User(
+        Configs::MasterDB::makeConfig("User"),
         "Database username for connection",
         "root",
         ReturnTrueCrossValidator(),
@@ -349,8 +349,8 @@ tmplConfigurable<QString> AppConfigs::MasterDB::User(
         "db-user",
         enuConfigSource::Arg | enuConfigSource::File);
 
-tmplConfigurable<QString> AppConfigs::MasterDB::Pass(
-        AppConfigs::MasterDB::makeConfig("Pass"),
+tmplConfigurable<QString> Configs::MasterDB::Pass(
+        Configs::MasterDB::makeConfig("Pass"),
         "Database password",
         "",
         ReturnTrueCrossValidator(),
@@ -359,8 +359,8 @@ tmplConfigurable<QString> AppConfigs::MasterDB::Pass(
         "db-pass",
         enuConfigSource::Arg | enuConfigSource::File);
 
-tmplConfigurable<QString> AppConfigs::MasterDB::Schema(
-        AppConfigs::MasterDB::makeConfig("Schema"),
+tmplConfigurable<QString> Configs::MasterDB::Schema(
+        Configs::MasterDB::makeConfig("Schema"),
         "Database schema",
         "MT",
         ReturnTrueCrossValidator(),

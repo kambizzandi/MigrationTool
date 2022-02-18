@@ -21,45 +21,58 @@
  * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
-#include "cmdList.h"
+#include "cmdCreateDB.h"
 #include "../Configs.h"
 
 namespace Targoman::Migrate::Commands {
 
-cmdList::cmdList()
+cmdCreateDB::cmdCreateDB()
 {
 }
 
-void cmdList::run(bool _showHelp)
+void cmdCreateDB::run(bool _showHelp)
 {
     if (_showHelp)
     {
-        qInfo() << "List of unapplied migrations";
-//        qInfo() << _line_splitter;
-//        qInfo() << "./targomanMigrate" << "List     : showing the first 10 new migrations";
-//        qInfo() << "./targomanMigrate" << "List 5   : showing the first 5 new migrations";
-//        qInfo() << "./targomanMigrate" << "List all : showing all new migrations";
         return;
     }
 
-    qInfo() << "Unapplied migrations:";
-    qInfo() << LINE_SPLITTER;
+    QString FileName;
+    QString FullFileName;
 
-    SourceMigrationFileInfoMap MigrationFiles;
-    ExtractMigrationFiles(MigrationFiles);
-//    qDebug() << "** All MigrationFiles ******************************";
-//    dump(MigrationFiles);
+    if (ChooseCreateMigrationProperties(
+                enuChooseCreateMigrationScope::db,
+                FileName,
+                FullFileName
+                ) == false)
+        return;
 
-    MigrationHistoryMap MigrationHistories;
-    ExtractMigrationHistories(MigrationHistories);
-//    qDebug() << "** MigrationHistories ******************************";
-//    dump(MigrationHistories);
+    qInfo().noquote().nospace() << "Creating new migration file: " << FullFileName;
 
-    RemoveAppliedFromList(MigrationFiles, MigrationHistories);
-//    qDebug() << "** Unapplied MigrationFiles ******************************";
-    dump(MigrationFiles);
+    QFile File(FullFileName);
+    if (File.open(QFile::WriteOnly | QFile::Text) == false)
+    {
+        qInfo() << "Could not create new migration file.";
+        return;
+    }
 
-    qInfo() << "";
+    QTextStream writer(&File);
+    writer
+        << "/* Migration File: "
+        << FileName
+        << " */"
+        << endl
+        << endl
+        ;
+    File.close();
+
+    qInfo().noquote() << "Empty migration file created successfully.";
+
+    QProcess EditorProcess;
+//    EditorProcess.start(Configs::DefaultEditor.value(), QStringList() << FullFileName);
+    EditorProcess.start("/usr/bin/vim", QStringList() << FullFileName);
+    if (!EditorProcess.waitForFinished())
+        throw exTargomanBase("Execution of default editor failed");
 }
 
 } // namespace Targoman::Migrate::Commands

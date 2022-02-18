@@ -25,16 +25,18 @@
 #define TARGOMAN_MIGRATE_CMDLIST_H
 
 #include "../Defs.h"
-#include "../intfCommand.h"
+#include "intfCommand.h"
 
 namespace Targoman::Migrate::Commands {
 
 class cmdList : public intfCommand
 {
 public:
+    instanceGetterPtr(cmdList);
     cmdList();
 
-    virtual void run();
+    virtual bool needDB() { return true; }
+    virtual void run(bool _showHelp = false);
 };
 
 } // namespace Targoman::Migrate::Commands
