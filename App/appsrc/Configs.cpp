@@ -97,6 +97,32 @@ tmplConfigurableArray<stuMigrationSource> Configs::Sources(
     1
 );
 
+tmplConfigurableArray<stuDBServers> Configs::DBServers(
+    Configs::makeConfig("DBServers"),
+    "DB Servers",
+    1
+);
+tmplConfigurableArray<stuRunningModes> Configs::RunningModes(
+    Configs::makeConfig("RunningModes"),
+    "Running modes",
+    1
+);
+tmplConfigurableArray<stuProjects> Configs::Projects(
+    Configs::makeConfig("Projects"),
+    "Projects",
+    1
+);
+tmplConfigurable<QString> Configs::ActiveRunnigMode(
+    Configs::makeConfig("ActiveRunnigMode"),
+    "Active runnig mode",
+    "",
+    ReturnTrueCrossValidator(),
+    "",
+    "",
+    "active-runnig-mode",
+    enuConfigSource::Arg | enuConfigSource::File
+);
+
 tmplConfigurable<QString> Configs::ApplyToAllSourceName(
     Configs::makeConfig("ApplyToAllSourceName"),
     "Source name for migrations set that must applied to the all other sources",

@@ -98,6 +98,7 @@ struct stuMigrationDB
 
     void setFromVariant(const QVariant &_value)
     {
+        Q_UNUSED(_value);
     }
 
     QVariant toVariant() const
@@ -129,6 +130,7 @@ struct stuMigrationSource
 
     void setFromVariant(const QVariant &_value)
     {
+        Q_UNUSED(_value);
     }
 
     QVariant toVariant() const
@@ -136,6 +138,128 @@ struct stuMigrationSource
         return ""; //"stuMigrationSource";
     }
 };
+
+
+//////////////////////////////////////////////////////////////////////
+
+struct stuDBServers
+{
+    tmplConfigurable<QString>  Name; //devdb1|devdb2|db1|db2|db3
+    tmplConfigurable<QString>  Host;
+    tmplConfigurable<QString>  Port;
+    tmplConfigurable<QString>  UserName;
+    tmplConfigurable<QString>  Password;
+
+    stuDBServers(const QString &_basePath) :
+        Name(
+            _basePath + "Name",
+            "",
+            ""
+        ),
+        Host(
+            _basePath + "Host",
+            "",
+            ""
+        ),
+        Port(
+            _basePath + "Port",
+            "",
+            ""
+        ),
+        UserName(
+            _basePath + "UserName",
+            "",
+            ""
+        ),
+        Password(
+            _basePath + "Password",
+            "",
+            ""
+        )
+    {}
+
+    void setFromVariant(const QVariant &_value)
+    {
+        Q_UNUSED(_value);
+    }
+
+    QVariant toVariant() const
+    {
+        return ""; //"stuDBServers";
+    }
+};
+
+struct stuRunningModes
+{
+    tmplConfigurable<QString>       Name; //dev|prod
+    tmplConfigurable<QStringList>   DBServers; //devdb1,devdb2 | db1,db2,db3
+
+    stuRunningModes(const QString &_basePath) :
+        Name(
+            _basePath + "Name",
+            "Name of the running mode"
+        ),
+        DBServers(
+            _basePath + "DBServers",
+            "Database servers"
+        )
+    {}
+
+    void setFromVariant(const QVariant &_value)
+    {
+        Q_UNUSED(_value);
+    }
+
+    QVariant toVariant() const
+    {
+        return ""; //"stuRunningModes";
+    }
+};
+
+struct stuProjects
+{
+    // ./migrations/{Name}/db/mYYYYMMDD_HHMMSS.sh
+    // ./migrations/{Name}/local/mYYYYMMDD_HHMMSS.sh
+    // ./migrations/{Name}/local/.migrations
+    tmplConfigurable<QString>       Name;
+    tmplConfigurable<bool>          AllowDB;
+    tmplConfigurable<bool>          AllowLocal;
+    tmplConfigurable<QStringList>   DBDestinations; //devdb1,db2
+
+    stuProjects(const QString &_basePath) :
+        Name(
+            _basePath + "Name",
+            "Name of the project. will be used in migrations path : ./migrations/{Name}/...",
+            ""
+        ),
+        AllowDB(
+            _basePath + "AllowDB",
+            "",
+            false
+        ),
+        AllowLocal(
+            _basePath + "AllowLocal",
+            "",
+            false
+        ),
+        DBDestinations(
+            _basePath + "DBDestinations",
+            "Database destinations"
+        )
+    {}
+
+    void setFromVariant(const QVariant &_value)
+    {
+        Q_UNUSED(_value);
+    }
+
+    QVariant toVariant() const
+    {
+        return ""; //"stuProjects";
+    }
+};
+
+//////////////////////////////////////////////////////////////////////
 
 inline QString bold(const QString &_s)
 {
@@ -159,5 +283,85 @@ inline QTextStream& qStdIn()
 }
 
 } // namespace Targoman::Migrate
+
+template <> inline void Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuMigrationDB>::setFromVariant(const QVariant& _value)
+{
+    Q_UNUSED(_value);
+}
+template <> inline QVariant Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuMigrationDB>::toVariant() const
+{
+    return ""; //"tmplConfigurableArray<Targoman::Migrate::stuMigrationDB>";
+}
+
+template <> inline void Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuMigrationSource>::setFromVariant(const QVariant& _value)
+{
+    Q_UNUSED(_value);
+
+//    QJsonDocument doc;
+//    doc.fromJson(_value.toString().toLatin1());
+
+//    this->Items.clear();
+
+//    if (doc.isEmpty())
+//        return;
+
+//    QJsonArray arr = doc.array();
+//    this->Items.reserve(arr.count());
+
+//    int idx = 0;
+//    foreach (auto Value, arr)
+//    {
+//        this->Items[idx++].setFromVariant(Value);
+//    }
+}
+template <> inline QVariant Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuMigrationSource>::toVariant() const
+{
+    return ""; //"tmplConfigurableArray<Targoman::Migrate::stuMigrationSource>";
+
+//    QVariantList Values;
+
+//    foreach(auto Item, this->Items)
+//    {
+//        Values.append(Item.toVariant());
+//    }
+
+//    QJsonArray arr;
+//    arr.fromVariantList(Values);
+
+//    QJsonDocument doc;
+//    doc.setArray(arr);
+
+//    QVariant v = doc.toJson();
+//    auto s = v.toString();
+//    auto s1 = s.toUtf8();
+//    auto s2 = s1.constData();
+
+//    return doc.toJson();
+}
+
+template <> inline void Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuDBServers>::setFromVariant(const QVariant& _value)
+{
+    Q_UNUSED(_value);
+}
+template <> inline QVariant Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuDBServers>::toVariant() const
+{
+    return ""; //"tmplConfigurableArray<Targoman::Migrate::stuDBServers>";
+}
+template <> inline void Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuRunningModes>::setFromVariant(const QVariant& _value)
+{
+    Q_UNUSED(_value);
+}
+template <> inline QVariant Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuRunningModes>::toVariant() const
+{
+    return ""; //"tmplConfigurableArray<Targoman::Migrate::stuRunningModes>";
+}
+template <> inline void Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuProjects>::setFromVariant(const QVariant& _value)
+{
+    Q_UNUSED(_value);
+}
+template <> inline QVariant Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuProjects>::toVariant() const
+{
+    return ""; //"tmplConfigurableArray<Targoman::Migrate::stuProjects>";
+}
 
 #endif // TARGOMAN_MIGRATE_DEFS_H

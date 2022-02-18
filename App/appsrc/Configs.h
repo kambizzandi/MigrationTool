@@ -146,42 +146,18 @@ struct Configs
     static tmplConfigurable<QString>                    MigrationsFolderName;
     static tmplConfigurable<QString>                    GlobalHistoryTableName;
     static tmplConfigurable<QString>                    LocalHistoryFileName;
-    static tmplConfigurableArray<stuMigrationSource>    Sources;
     static tmplConfigurable<QString>                    ApplyToAllSourceName;
+    static tmplConfigurableArray<stuMigrationSource>    Sources;
+
+    static tmplConfigurableArray<stuDBServers>          DBServers;
+    static tmplConfigurableArray<stuRunningModes>       RunningModes;
+    static tmplConfigurableArray<stuProjects>           Projects;
+    static tmplConfigurable<QString>                    ActiveRunnigMode;
 
     static tmplConfigurable<bool>                       DBOnly;
     static tmplConfigurable<bool>                       LocalOnly;
 
     static tmplConfigurable<QString>                    DefaultEditor;
-
-
-//    static tmplConfigurable<QString>                    BasePath;
-//    static tmplConfigurable<QString>       Version;
-//    static tmplRangedConfigurable<quint16> ListenPort;
-//    static tmplConfigurable<bool>          IndentedJson;
-//    static tmplRangedConfigurable<qint64>  MaxUploadSize;
-//    static tmplRangedConfigurable<qint64>  MaxUploadedFileSize;
-//    static tmplConfigurable<FilePath_t>    BaseOpenAPIObjectFile;
-//    static tmplRangedConfigurable<quint8>  StatisticsInterval;
-//    static tmplRangedConfigurable<quint32> MaxCachedItems;
-//    static tmplConfigurable<QString>       CacheConnector;
-//    static tmplConfigurable<QString>       AccessControl;
-//    static tmplConfigurable<bool>          MultiThreaded;
-//    static tmplRangedConfigurable<qint32>  APICallTimeout;
-//    static tmplConfigurable<FilePath_t>    PublicPath;
-//    static tmplConfigurable<FilePath_t>    SwaggerUI;
-//    static tmplRangedConfigurable<quint32> FileMaxChunk;
-
-//    static QString BasePathWithVersion;
-
-//    struct MasterDB {
-//        static inline QString makeConfig(const QString& _name){return "/MasterDB/" + _name;}
-//        static tmplConfigurable<QString>      Host;
-//        static tmplRangedConfigurable<quint16>Port;
-//        static tmplConfigurable<QString>      User;
-//        static tmplConfigurable<QString>      Pass;
-//        static tmplConfigurable<QString>      Schema;
-//    };
 };
 
 //constexpr  quint16 TAPI_BASE_USER_DEFINED_TYPEID = QMetaType::User + 3;
@@ -192,57 +168,5 @@ struct Configs
 
 ENUM_CONFIGURABLE(Targoman::Migrate::enuAppCommand);
 //S P ECIAL_CONFIGURABLE(Targoman::Migrate::stuServers);
-
-template <> inline void Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuMigrationDB>::setFromVariant(const QVariant& _value)
-{
-}
-template <> inline QVariant Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuMigrationDB>::toVariant() const
-{
-    return ""; //"tmplConfigurableArray<Targoman::Migrate::stuMigrationDB>";
-}
-
-template <> inline void Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuMigrationSource>::setFromVariant(const QVariant& _value)
-{
-//    QJsonDocument doc;
-//    doc.fromJson(_value.toString().toLatin1());
-
-//    this->Items.clear();
-
-//    if (doc.isEmpty())
-//        return;
-
-//    QJsonArray arr = doc.array();
-//    this->Items.reserve(arr.count());
-
-//    int idx = 0;
-//    foreach (auto Value, arr)
-//    {
-//        this->Items[idx++].setFromVariant(Value);
-//    }
-}
-template <> inline QVariant Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuMigrationSource>::toVariant() const
-{
-    return ""; //"tmplConfigurableArray<Targoman::Migrate::stuMigrationSource>";
-
-//    QVariantList Values;
-
-//    foreach(auto Item, this->Items)
-//    {
-//        Values.append(Item.toVariant());
-//    }
-
-//    QJsonArray arr;
-//    arr.fromVariantList(Values);
-
-//    QJsonDocument doc;
-//    doc.setArray(arr);
-
-//    QVariant v = doc.toJson();
-//    auto s = v.toString();
-//    auto s1 = s.toUtf8();
-//    auto s2 = s1.constData();
-
-//    return doc.toJson();
-}
 
 #endif // TARGOMAN_MIGRATE_CONFIGS_H

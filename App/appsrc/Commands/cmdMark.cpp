@@ -30,19 +30,18 @@ cmdMark::cmdMark()
 {
 }
 
-void cmdMark::run(bool _showHelp)
+void cmdMark::help()
 {
-    if (_showHelp)
-    {
-        qInfo() << "Modifying migration history without actually run migrations";
-//        qInfo() << _line_splitter;
-//        qInfo() << "./targomanMigrate" << "Mark 20220101_010203                              : add all unapplied migrations upto 20220101_010203";
-//        qInfo() << "./targomanMigrate" << "Mark m20220101_010203                             : add all unapplied migrations upto 20220101_010203";
-//        qInfo() << "./targomanMigrate" << "Mark m20220101_010203_description_of_migration    : add all unapplied migrations upto 20220101_010203";
-//        qInfo() << "./targomanMigrate" << "Mark m20220101_010203_description_of_migration.sh : add all unapplied migrations upto 20220101_010203";
-        return;
-    }
+    qInfo() << "Modifying migration history without actually run migrations";
+    //        qInfo() << _line_splitter;
+    //        qInfo() << "./targomanMigrate" << "Mark 20220101_010203                              : add all unapplied migrations upto 20220101_010203";
+    //        qInfo() << "./targomanMigrate" << "Mark m20220101_010203                             : add all unapplied migrations upto 20220101_010203";
+    //        qInfo() << "./targomanMigrate" << "Mark m20220101_010203_description_of_migration    : add all unapplied migrations upto 20220101_010203";
+    //        qInfo() << "./targomanMigrate" << "Mark m20220101_010203_description_of_migration.sh : add all unapplied migrations upto 20220101_010203";
+}
 
+void cmdMark::run()
+{
     SourceMigrationFileInfoMap MigrationFiles;
     ExtractMigrationFiles(MigrationFiles);
 //    qDebug() << "** All MigrationFiles ******************************";

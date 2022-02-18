@@ -30,13 +30,12 @@ cmdCreateLocal::cmdCreateLocal()
 {
 }
 
-void cmdCreateLocal::run(bool _showHelp)
+void cmdCreateLocal::help()
 {
-    if (_showHelp)
-    {
-        return;
-    }
+}
 
+void cmdCreateLocal::run()
+{
     QString FileName;
     QString FullFileName;
 

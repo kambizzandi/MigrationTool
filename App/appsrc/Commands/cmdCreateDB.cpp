@@ -30,13 +30,12 @@ cmdCreateDB::cmdCreateDB()
 {
 }
 
-void cmdCreateDB::run(bool _showHelp)
+void cmdCreateDB::help()
 {
-    if (_showHelp)
-    {
-        return;
-    }
+}
 
+void cmdCreateDB::run()
+{
     QString FileName;
     QString FullFileName;
 

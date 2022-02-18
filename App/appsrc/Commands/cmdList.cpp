@@ -30,18 +30,17 @@ cmdList::cmdList()
 {
 }
 
-void cmdList::run(bool _showHelp)
+void cmdList::help()
 {
-    if (_showHelp)
-    {
-        qInfo() << "List of unapplied migrations";
-//        qInfo() << _line_splitter;
-//        qInfo() << "./targomanMigrate" << "List     : showing the first 10 new migrations";
-//        qInfo() << "./targomanMigrate" << "List 5   : showing the first 5 new migrations";
-//        qInfo() << "./targomanMigrate" << "List all : showing all new migrations";
-        return;
-    }
+    qInfo() << "List of unapplied migrations";
+    //        qInfo() << _line_splitter;
+    //        qInfo() << "./targomanMigrate" << "List     : showing the first 10 new migrations";
+    //        qInfo() << "./targomanMigrate" << "List 5   : showing the first 5 new migrations";
+    //        qInfo() << "./targomanMigrate" << "List all : showing all new migrations";
+}
 
+void cmdList::run()
+{
     qInfo() << "Unapplied migrations:";
     qInfo() << LINE_SPLITTER;
 

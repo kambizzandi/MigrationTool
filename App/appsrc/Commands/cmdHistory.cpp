@@ -30,18 +30,17 @@ cmdHistory::cmdHistory()
 {
 }
 
-void cmdHistory::run(bool _showHelp)
+void cmdHistory::help()
 {
-    if (_showHelp)
-    {
-        qInfo() << "List of applied migrations";
-//        qInfo() << _line_splitter;
-//        qInfo() << "./targomanMigrate" << "History     : showing the first 10 applied migrations";
-//        qInfo() << "./targomanMigrate" << "History 5   : showing the first 5 applied migrations";
-//        qInfo() << "./targomanMigrate" << "History all : showing all applied migrations";
-        return;
-    }
+    qInfo() << "List of applied migrations";
+    //        qInfo() << _line_splitter;
+    //        qInfo() << "./targomanMigrate" << "History     : showing the first 10 applied migrations";
+    //        qInfo() << "./targomanMigrate" << "History 5   : showing the first 5 applied migrations";
+    //        qInfo() << "./targomanMigrate" << "History all : showing all applied migrations";
+}
 
+void cmdHistory::run()
+{
     MigrationHistoryMap MigrationHistories;
     ExtractMigrationHistories(MigrationHistories);
 //    qDebug() << "** MigrationHistories ******************************";

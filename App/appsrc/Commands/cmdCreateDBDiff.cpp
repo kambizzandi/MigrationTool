@@ -30,13 +30,12 @@ cmdCreateDBDiff::cmdCreateDBDiff()
 {
 }
 
-void cmdCreateDBDiff::run(bool _showHelp)
+void cmdCreateDBDiff::help()
 {
-    if (_showHelp)
-    {
-        return;
-    }
+}
 
+void cmdCreateDBDiff::run()
+{
     QString FileName;
     QString FullFileName;
     qint32 SourceIndex = -1;

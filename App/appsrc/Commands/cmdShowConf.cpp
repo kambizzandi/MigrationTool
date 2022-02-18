@@ -30,7 +30,11 @@ cmdShowConf::cmdShowConf()
 {
 }
 
-void cmdShowConf::run(bool _showHelp)
+void cmdShowConf::help()
+{
+}
+
+void cmdShowConf::run()
 {
     if (Configs::Sources.size() == 0)
     {

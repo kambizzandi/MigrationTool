@@ -36,7 +36,8 @@ public:
     cmdShowConf();
 
     virtual bool needDB() { return false; }
-    virtual void run(bool _showHelp = false);
+    virtual void run();
+    virtual void help();
 };
 
 } // namespace Targoman::Migrate::Commands

@@ -33,7 +33,8 @@ class intfCommand
 {
 public:
     virtual bool needDB() = 0;
-    virtual void run(bool _showHelp = false) = 0;
+    virtual void run() = 0;
+    virtual void help() = 0;
 };
 
 } // namespace Targoman::Migrate::Commands

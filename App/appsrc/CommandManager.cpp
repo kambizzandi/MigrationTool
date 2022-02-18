@@ -126,6 +126,13 @@ void CommandManager::slotExecute()
         if (Command == nullptr)
             throw exTargomanMigrate("Invalid command");
 
+        if (false) //SHOW_HELP
+        {
+            Command->help();
+            QCoreApplication::exit(0);
+            return;
+        }
+
         //---------------------------------
         if (Command->needDB())
         {

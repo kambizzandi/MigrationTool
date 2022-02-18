@@ -30,13 +30,12 @@ cmdCommit::cmdCommit()
 {
 }
 
-void cmdCommit::run(bool _showHelp)
+void cmdCommit::help()
 {
-    if (_showHelp)
-    {
-        return;
-    }
+}
 
+void cmdCommit::run()
+{
     SourceMigrationFileInfoMap MigrationFiles;
     ExtractMigrationFiles(MigrationFiles);
 //    qDebug() << "** All MigrationFiles ******************************";
