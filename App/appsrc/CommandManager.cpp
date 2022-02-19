@@ -56,19 +56,6 @@ CommandManager::CommandManager(QObject *parent) : QObject(parent)
 
 void CommandManager::slotExecute()
 {
-/*
-    return;
-
-
-    QProcess EditorProcess;
-//    EditorProcess.start(Configs::DefaultEditor.value(), QStringList() << FullFileName);
-    EditorProcess.start("/usr/bin/vim", QStringList() << "/home/user/Projects/TargomanMigrate/migrations/App/db/CommonFuncs/m20220218_002317_2.sql");
-    if (!EditorProcess.waitForFinished())
-        throw exTargomanBase("Execution of default editor failed");
-
-    QCoreApplication::exit(0);
-*/
-
     try
     {
         intfCommand *Command = nullptr;
@@ -163,7 +150,9 @@ void CommandManager::slotExecute()
         }
 
         //---------------------------------
-        Command->run();
+        if (Command->run())
+            QCoreApplication::exit(0);
+        //else: async
     }
     catch(exTargomanBase &exp)
     {
@@ -171,8 +160,6 @@ void CommandManager::slotExecute()
         QCoreApplication::exit(-1);
         return;
     }
-
-    QCoreApplication::exit(0);
 }
 
 } //namespace Targoman::Migrate

@@ -26,18 +26,28 @@
 
 #include "../Defs.h"
 #include "intfCommand.h"
+#include <QObject>
 
 namespace Targoman::Migrate::Commands {
 
-class cmdCreateDB : public intfCommand
+class cmdCreateDB : public QObject, public intfCommand
 {
+    Q_OBJECT
+
 public:
     instanceGetterPtr(cmdCreateDB);
-    cmdCreateDB();
+    cmdCreateDB(QObject *parent = nullptr);
 
     virtual bool needDB() { return true; }
-    virtual void run();
     virtual void help();
+    virtual bool run();
+
+//private Q_SLOTS:
+//    void error(QProcess::ProcessError error);
+//    void finished(int exitCode, QProcess::ExitStatus exitStatus);
+
+//private:
+//    QProcess *EditorProcess;
 };
 
 } // namespace Targoman::Migrate::Commands

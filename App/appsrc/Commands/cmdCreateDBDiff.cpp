@@ -34,7 +34,7 @@ void cmdCreateDBDiff::help()
 {
 }
 
-void cmdCreateDBDiff::run()
+bool cmdCreateDBDiff::run()
 {
     QString FileName;
     QString FullFileName;
@@ -48,7 +48,7 @@ void cmdCreateDBDiff::run()
                 &SourceIndex,
                 &DBIndex
                 ) == false)
-        return;
+        return true;
 
 //    qDebug() << "===================="
 //             << SourceIndex
@@ -77,14 +77,12 @@ void cmdCreateDBDiff::run()
 
 
 
-
-
 //    QFile File(FullFileName);
 
 //    if (File.open(QFile::WriteOnly | QFile::Text) == false)
 //    {
 //        qInfo() << "Could not create new migration file.";
-//        return;
+//        return true;
 //    }
 
 //    QTextStream writer(&File);
@@ -98,6 +96,8 @@ void cmdCreateDBDiff::run()
 //    File.close();
 
 //    qInfo().noquote() << "Migration file by diff created successfully.";
+
+    return true;
 }
 
 } // namespace Targoman::Migrate::Commands

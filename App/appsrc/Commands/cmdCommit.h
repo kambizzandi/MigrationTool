@@ -36,8 +36,8 @@ public:
     cmdCommit();
 
     virtual bool needDB() { return true; }
-    virtual void run();
     virtual void help();
+    virtual bool run();
 };
 
 } // namespace Targoman::Migrate::Commands

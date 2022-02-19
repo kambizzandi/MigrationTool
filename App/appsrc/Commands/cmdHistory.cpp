@@ -39,7 +39,7 @@ void cmdHistory::help()
     //        qInfo() << "./targomanMigrate" << "History all : showing all applied migrations";
 }
 
-void cmdHistory::run()
+bool cmdHistory::run()
 {
     MigrationHistoryMap MigrationHistories;
     ExtractMigrationHistories(MigrationHistories);
@@ -85,6 +85,8 @@ void cmdHistory::run()
     qInfo() << "Applied migrations:";
     qInfo() << LINE_SPLITTER;
     dump(MigrationFiles, true);
+
+    return true;
 }
 
 } // namespace Targoman::Migrate::Commands

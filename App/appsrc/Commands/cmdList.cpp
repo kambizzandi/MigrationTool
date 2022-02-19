@@ -39,7 +39,7 @@ void cmdList::help()
     //        qInfo() << "./targomanMigrate" << "List all : showing all new migrations";
 }
 
-void cmdList::run()
+bool cmdList::run()
 {
     qInfo() << "Unapplied migrations:";
     qInfo() << LINE_SPLITTER;
@@ -59,6 +59,8 @@ void cmdList::run()
     dump(MigrationFiles);
 
     qInfo() << "";
+
+    return true;
 }
 
 } // namespace Targoman::Migrate::Commands

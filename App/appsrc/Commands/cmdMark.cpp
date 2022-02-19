@@ -40,7 +40,7 @@ void cmdMark::help()
     //        qInfo() << "./targomanMigrate" << "Mark m20220101_010203_description_of_migration.sh : add all unapplied migrations upto 20220101_010203";
 }
 
-void cmdMark::run()
+bool cmdMark::run()
 {
     SourceMigrationFileInfoMap MigrationFiles;
     ExtractMigrationFiles(MigrationFiles);
@@ -57,7 +57,7 @@ void cmdMark::run()
     if (MigrationFiles.isEmpty())
     {
         qInfo() << "nothing to mark";
-        return;
+        return true;
     }
 
 //    qDebug() << "** Unapplied MigrationFiles ******************************";
@@ -102,7 +102,7 @@ void cmdMark::run()
             continue;
 
         if (value == "c")
-            return;
+            return true;
 
         if (value == "a")
         {
@@ -156,6 +156,8 @@ void cmdMark::run()
     }
 
     qInfo() << "";
+
+    return true;
 }
 
 } // namespace Targoman::Migrate::Commands

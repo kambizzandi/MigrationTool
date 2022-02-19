@@ -34,7 +34,7 @@ void cmdCommit::help()
 {
 }
 
-void cmdCommit::run()
+bool cmdCommit::run()
 {
     SourceMigrationFileInfoMap MigrationFiles;
     ExtractMigrationFiles(MigrationFiles);
@@ -51,7 +51,7 @@ void cmdCommit::run()
     if (MigrationFiles.isEmpty())
     {
         qInfo() << "nothing to run";
-        return;
+        return true;
     }
 
 //    qDebug() << "** Unapplied MigrationFiles ******************************";
@@ -96,7 +96,7 @@ void cmdCommit::run()
             continue;
 
         if (value == "c")
-            return;
+            return true;
 
         if (value == "a")
         {
@@ -150,6 +150,8 @@ void cmdCommit::run()
     }
 
     qInfo() << "";
+
+    return true;
 }
 
 } // namespace Targoman::Migrate::Commands

@@ -34,12 +34,12 @@ void cmdShowConf::help()
 {
 }
 
-void cmdShowConf::run()
+bool cmdShowConf::run()
 {
     if (Configs::Sources.size() == 0)
     {
         qInfo() << "nothing to show";
-        return;
+        return true;
     }
 
     qInfo().noquote()
@@ -71,6 +71,8 @@ void cmdShowConf::run()
     }
 
     qInfo() << "";
+
+    return true;
 }
 
 } // namespace Targoman::Migrate::Commands

@@ -23,6 +23,8 @@
 
 #include "cmdCreateLocal.h"
 #include "../Configs.h"
+#include <signal.h>
+#include <unistd.h>
 
 namespace Targoman::Migrate::Commands {
 
@@ -34,7 +36,7 @@ void cmdCreateLocal::help()
 {
 }
 
-void cmdCreateLocal::run()
+bool cmdCreateLocal::run()
 {
     QString FileName;
     QString FullFileName;
@@ -44,7 +46,7 @@ void cmdCreateLocal::run()
                 FileName,
                 FullFileName
                 ) == false)
-        return;
+        return true;
 
     qInfo().noquote().nospace() << "Creating new migration file: " << FullFileName;
 
@@ -52,7 +54,7 @@ void cmdCreateLocal::run()
     if (File.open(QFile::WriteOnly | QFile::Text) == false)
     {
         qInfo() << "Could not create new migration file.";
-        return;
+        return true;
     }
 
     QTextStream writer(&File);
@@ -67,6 +69,16 @@ void cmdCreateLocal::run()
     File.close();
 
     qInfo().noquote() << "Empty migration file created successfully.";
+
+    qint64 PID;
+    if (QProcess::startDetached(Configs::DefaultEditor.value(),
+                                QStringList() << FullFileName,
+                                {},
+                                &PID) == false)
+        throw exTargomanBase("Execution of default editor failed");
+    while (kill(PID, 0) == 0) { usleep(1); }
+
+    return true;
 }
 
 } // namespace Targoman::Migrate::Commands

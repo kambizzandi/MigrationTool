@@ -23,19 +23,54 @@
 
 #include "cmdCreateDB.h"
 #include "../Configs.h"
+#include <signal.h>
+#include <unistd.h>
 
 namespace Targoman::Migrate::Commands {
 
-cmdCreateDB::cmdCreateDB()
-{
-}
+cmdCreateDB::cmdCreateDB(QObject *parent) : QObject(parent)
+{}
 
 void cmdCreateDB::help()
 {
 }
 
-void cmdCreateDB::run()
+bool cmdCreateDB::run()
 {
+//    this->EditorProcess = new QProcess(this);
+
+//    QThread *thread = new QThread;
+
+//    qDebug() << __FUNCTION__ << __LINE__;
+//    EditorProcess.moveToThread(thread);
+
+//    EditorProcess.start(Configs::DefaultEditor.value(), QStringList() << FullFileName);
+
+//    qDebug() << __FUNCTION__ << __LINE__;
+//    this->connect(EditorProcess, SIGNAL(error(QProcess::ProcessError)), this, SLOT(error(QProcess::ProcessError)));
+//    this->connect(EditorProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finished(int, QProcess::ExitStatus)));
+
+//    qDebug() << __FUNCTION__ << __LINE__;
+
+//    EditorProcess->start("xterm",
+//                         QStringList()
+//                         << "-e"
+//                         << "vim"
+//                         << "/home/user/Projects/test.txt"
+//                         );
+
+//    qDebug() << __FUNCTION__ << __LINE__;
+//    return false; //async
+
+
+//    qint64 pid;
+//    QProcess::startDetached("/usr/bin/vim",
+//                            QStringList() << "/home/user/Projects/test.txt",
+//                            {},
+//                            &pid);
+//    while (kill(pid, 0) == 0) { usleep(1); }
+//    return true;
+
     QString FileName;
     QString FullFileName;
 
@@ -44,7 +79,7 @@ void cmdCreateDB::run()
                 FileName,
                 FullFileName
                 ) == false)
-        return;
+        return true;
 
     qInfo().noquote().nospace() << "Creating new migration file: " << FullFileName;
 
@@ -52,7 +87,7 @@ void cmdCreateDB::run()
     if (File.open(QFile::WriteOnly | QFile::Text) == false)
     {
         qInfo() << "Could not create new migration file.";
-        return;
+        return true;
     }
 
     QTextStream writer(&File);
@@ -67,11 +102,29 @@ void cmdCreateDB::run()
 
     qInfo().noquote() << "Empty migration file created successfully.";
 
-    QProcess EditorProcess;
-//    EditorProcess.start(Configs::DefaultEditor.value(), QStringList() << FullFileName);
-    EditorProcess.start("/usr/bin/vim", QStringList() << FullFileName);
-    if (!EditorProcess.waitForFinished())
+    qint64 PID;
+    if (QProcess::startDetached(Configs::DefaultEditor.value(),
+                                QStringList() << FullFileName,
+                                {},
+                                &PID) == false)
         throw exTargomanBase("Execution of default editor failed");
+    while (kill(PID, 0) == 0) { usleep(1); }
+
+    return true;
 }
+
+//void cmdCreateDB::error(QProcess::ProcessError error)
+//{
+//    qDebug() << __FUNCTION__;
+
+//    QCoreApplication::exit(0);
+//}
+
+//void cmdCreateDB::finished(int exitCode, QProcess::ExitStatus exitStatus)
+//{
+//    qDebug() << __FUNCTION__;
+
+//    QCoreApplication::exit(0);
+//}
 
 } // namespace Targoman::Migrate::Commands
