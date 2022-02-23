@@ -38,16 +38,14 @@ bool cmdCreateDBDiff::run()
 {
     QString FileName;
     QString FullFileName;
-    qint32 SourceIndex = -1;
-    qint32 DBIndex = -1;
+    quint32 ProjectIndex;
 
     if (ChooseCreateMigrationProperties(
                 enuChooseCreateMigrationScope::dbdiff,
                 FileName,
                 FullFileName,
-                &SourceIndex,
-                &DBIndex
-                ) == false)
+                ProjectIndex
+            ) == false)
         return true;
 
 //    qDebug() << "===================="
@@ -55,17 +53,9 @@ bool cmdCreateDBDiff::run()
 //             << DBIndex
 //             ;
 
-    if (SourceIndex == -1)
-        throw exTargomanBase("Invalid Source Index");
+    stuProject &SelectedProject = Configs::Projects[ProjectIndex];
 
-    if (DBIndex == -1)
-        throw exTargomanBase("Invalid DB Index");
-
-    stuMigrationSource &Source = Configs::Sources[SourceIndex];
-    stuMigrationDB &DB = Source.DB[DBIndex];
-
-    qDebug() << Source.Name.value();
-    qDebug() << DB.Schema.value();
+    qDebug() << SelectedProject.Name.value();
 
 
 

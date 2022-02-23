@@ -29,6 +29,11 @@ namespace Targoman::Migrate {
 using namespace Targoman::Common;
 using namespace Targoman::Common::Configuration;
 
+//tmplConfigurable<QStringList> Configs::TestStringList(
+//    Configs::makeConfig("TestStringList"),
+//    "TestStringList"
+//);
+
 tmplConfigurable<enuAppCommand::Type> Configs::Command(
     Configs::makeConfig("Command"),
     R"(Application command:
@@ -91,25 +96,20 @@ tmplConfigurable<QString> Configs::LocalHistoryFileName(
     enuConfigSource::Arg | enuConfigSource::File
 );
 
-tmplConfigurableArray<stuMigrationSource> Configs::Sources(
-    Configs::makeConfig("Sources"),
-    "Sources of migrations",
-    1
-);
+//tmplConfigurableArray<stuMigrationSource> Configs::Sources(
+//    Configs::makeConfig("Sources"),
+//    "Sources of migrations",
+//    1
+//);
 
-tmplConfigurableArray<stuDBServers> Configs::DBServers(
+tmplConfigurableArray<stuDBServer> Configs::DBServers(
     Configs::makeConfig("DBServers"),
     "DB Servers",
     1
 );
-tmplConfigurableArray<stuRunningModes> Configs::RunningModes(
+tmplConfigurableArray<stuRunningMode> Configs::RunningModes(
     Configs::makeConfig("RunningModes"),
     "Running modes",
-    1
-);
-tmplConfigurableArray<stuProjects> Configs::Projects(
-    Configs::makeConfig("Projects"),
-    "Projects",
     1
 );
 tmplConfigurable<QString> Configs::ActiveRunnigMode(
@@ -122,17 +122,22 @@ tmplConfigurable<QString> Configs::ActiveRunnigMode(
     "active-runnig-mode",
     enuConfigSource::Arg | enuConfigSource::File
 );
-
-tmplConfigurable<QString> Configs::ApplyToAllSourceName(
-    Configs::makeConfig("ApplyToAllSourceName"),
-    "Source name for migrations set that must applied to the all other sources",
-    "TargomanMigrate",
-    ReturnTrueCrossValidator(),
-    "",
-    "NAME",
-    "apply-to-all-source-name",
-    enuConfigSource::Arg | enuConfigSource::File
+tmplConfigurableArray<stuProject> Configs::Projects(
+    Configs::makeConfig("Projects"),
+    "Projects",
+    1
 );
+
+//tmplConfigurable<QString> Configs::ApplyToAllSourceName(
+//    Configs::makeConfig("ApplyToAllSourceName"),
+//    "Source name for migrations set that must applied to the all other sources",
+//    "TargomanMigrate",
+//    ReturnTrueCrossValidator(),
+//    "",
+//    "NAME",
+//    "apply-to-all-source-name",
+//    enuConfigSource::Arg | enuConfigSource::File
+//);
 
 tmplConfigurable<bool> Configs::DBOnly(
     Configs::makeConfig("DBOnly"),
@@ -167,234 +172,84 @@ tmplConfigurable<QString> Configs::DefaultEditor(
     enuConfigSource::Arg | enuConfigSource::File
 );
 
-/*
-tmplConfigurable<QString> Configs::BasePath(
-    Configs::makeConfig("BasePath"),
-    "Base path",
-    "",
-    ReturnTrueCrossValidator(),
-    "",
-    "PATH",
-    "base-path",
-    enuConfigSource::Arg | enuConfigSource::File
-);
+Configs::stuRunningParameters Configs::RunningParameters;
 
-tmplConfigurable<QString> Configs::Version(
-        Configs::makeConfig("Version"),
-        "REST API version to be appended to base path",
-        "v1",
-        ReturnTrueCrossValidator(),
-        "",
-        "VERSION",
-        "version",
-        enuConfigSource::Arg | enuConfigSource::File);
+void Configs::FillRunningParameters()
+{
+    //1: find RunningMode:
+    if (Configs::ActiveRunnigMode.value().isEmpty())
+        throw exTargomanBase("Active Running Mode not defined");
 
+    int RunningModeIndex = -1;
 
-tmplRangedConfigurable<quint16> Configs::ListenPort(
-        Configs::makeConfig("ListenPort"),
-        "Listen port for main REST server",
-        1000,65000,
-        10000,
-        ReturnTrueCrossValidator(),
-        "p",
-        "PORT",
-        "listen-port",
-        enuConfigSource::Arg | enuConfigSource::File);
+    for (size_t idxRunningModes=0; idxRunningModes<Configs::RunningModes.size(); idxRunningModes++)
+    {
+        stuRunningMode &RunningMode = Configs::RunningModes[idxRunningModes];
 
-tmplRangedConfigurable<quint8> Configs::StatisticsInterval(
-        Configs::makeConfig("StatisticsInterval"),
-        "Listen port for main REST server",
-        1,60,
-        10,
-        ReturnTrueCrossValidator(),
-        "",
-        "INTERVAL",
-        "stats-interval",
-        enuConfigSource::Arg | enuConfigSource::File);
+        if (RunningMode.Name.value() == Configs::ActiveRunnigMode.value())
+        {
+            RunningModeIndex = idxRunningModes;
+            break;
+        }
+    }
 
-tmplConfigurable<bool> Configs::IndentedJson(
-        Configs::makeConfig("IndentedJson"),
-        "If set to true Json outputs will be indented",
-        false,
-        ReturnTrueCrossValidator(),
-        "",
-        "",
-        "indented-json",
-        enuConfigSource::Arg | enuConfigSource::File);
+    if (RunningModeIndex < 0)
+        throw exTargomanBase("Running Mode not found");
 
-tmplConfigurable<bool> Configs::MultiThreaded(
-        Configs::makeConfig("MultiThreaded"),
-        "If set to false then application will run in single-threaded mode and will be blocked on time-consuming API calls",
-        true,
-        ReturnTrueCrossValidator(),
-        "",
-        "",
-        "",
-        enuConfigSource::File);
+//    Configs::RunningParameters.RunningModeName = Configs::RunningModes[Configs::RunningParameters.RunningModeIndex].Name.value();
+    Configs::RunningParameters.RunningModeDBServers = Configs::RunningModes[RunningModeIndex].DBServers.value();
 
-tmplRangedConfigurable<qint32> Configs::APICallTimeout(
-        Configs::makeConfig("APICallTimeout"),
-        "default timeout for API Calls. It can be reconfigured on each API Call. set to -1 for infinite",
-        -1, 60 * 1000,
-        -1,
-        ReturnTrueCrossValidator(),
-        "",
-        "MILISECONDS",
-        "default-api-timeout",
-        enuConfigSource::Arg | enuConfigSource::File);
+    if (Configs::RunningParameters.RunningModeDBServers.isEmpty() == false)
+    {
+        //2: find DBServers:
+        quint32 dbIdx = 0;
+        for (size_t idxDBServers=0; idxDBServers<Configs::DBServers.size(); idxDBServers++)
+        {
+            stuDBServer &DBServer = Configs::DBServers[idxDBServers];
 
-tmplRangedConfigurable<qint64> Configs::MaxUploadSize(
-        Configs::makeConfig("MaxUploadSize"),
-        "Max Upload size for any type of request",
-        10*1024, 10*1024*1024,
-        10*1024*1024,
-        ReturnTrueCrossValidator(),
-        "",
-        "SIZE",
-        "max-upload-size",
-        enuConfigSource::Arg | enuConfigSource::File);
+            foreach (QString DBServerName, Configs::RunningParameters.RunningModeDBServers)
+            {
+                if (DBServerName == DBServer.Name.value())
+                {
+                    //projects
+                    for (size_t idxProjects=0; idxProjects<Configs::Projects.size(); idxProjects++)
+                    {
+                        stuProject &Project = Configs::Projects[idxProjects];
 
-tmplRangedConfigurable<quint32> Configs::FileMaxChunk(
-        Configs::makeConfig("FileMaxChunk"),
-        "Max file size to send on each chunk.",
-        10*1024, 10*1024*1024,
-        10*1024,
-        ReturnTrueCrossValidator(),
-        "",
-        "SIZE",
-        "chunk-size",
-        enuConfigSource::Arg | enuConfigSource::File);
+                        qDebug() << "lookup" << DBServerName << "in" << Project.DBDestinations.value(); //.join("|");
 
-tmplRangedConfigurable<qint64> Configs::MaxUploadedFileSize(
-        Configs::makeConfig("MaxUploadedFileSize"),
-        "Max Upload size for files",
-        1*1024, 100*1024*1024,
-        100*1024*1024,
-        ReturnTrueCrossValidator(),
-        "",
-        "SIZE",
-        "max-file-upload-size",
-        enuConfigSource::Arg | enuConfigSource::File);
+                        if (Project.AllowDB.value()
+                                && (Project.DBDestinations.value().isEmpty() == false)
+                                && Project.DBDestinations.value().contains(DBServerName)
+                            )
+                        {
+                            qDebug() << "found";
 
-tmplRangedConfigurable<quint32> Configs::MaxCachedItems(
-        Configs::makeConfig("MaxCachedItems"),
-        "Maximum API calls to be cached",
-        0,65000,
-        5000,
-        ReturnTrueCrossValidator(),
-        "",
-        "SIZE",
-        "max-cache-size",
-        enuConfigSource::Arg | enuConfigSource::File);
+                            //---------------------------
+                            QStringList ProjectAllowedDBServers = Configs::RunningParameters.ProjectAllowedDBServers[Project.Name.value()];
+                            ProjectAllowedDBServers.append(DBServerName);
+                            Configs::RunningParameters.ProjectAllowedDBServers[Project.Name.value()] = ProjectAllowedDBServers;
 
-tmplConfigurable<QString> Configs::CacheConnector(
-        Configs::makeConfig("CacheConnector"),
-        "Connection string to connect to Redis cache server",
-        "",
-        ReturnTrueCrossValidator(),
-        "",
-        "CONNECTION_STRING",
-        "cache-connector",
-        enuConfigSource::Arg | enuConfigSource::File);
+                            //---------------------------
+                            QString ConnStringWithSchema = QString("HOST=%1;PORT=%2;USER=%3;PASSWORD=%4;SCHEMA=%5;")
+                                                           .arg(DBServer.Host.value())
+                                                           .arg(DBServer.Port.value())
+                                                           .arg(DBServer.UserName.value())
+                                                           .arg(DBServer.Password.value())
+                                                           .arg(Project.Name.value());
 
-tmplConfigurable<QString> Configs::AccessControl(
-        Configs::makeConfig("AccessControl"),
-        "Default access control",
-        "*",
-        ReturnTrueCrossValidator(),
-        "",
-        "ACCESS-CONTROL-STRING",
-        "",
-        enuConfigSource::File);
+                            QString ProjectDestinationKey = QString("%1@%2").arg(Project.Name.value()).arg(DBServerName);
+                            Configs::RunningParameters.ProjectDBConnectionStrings[ProjectDestinationKey] = ConnStringWithSchema;
+                        }
+                    }
 
-tmplConfigurable<FilePath_t>     Configs::BaseOpenAPIObjectFile(
-        Configs::makeConfig("BaseOpenAPIObjectFile"),
-        "Input file path where default OpenAPI object file resides",
-        "",
-        Validators::tmplPathAccessValidator<
-        TARGOMAN_PATH_ACCESS(enuPathAccess::File | enuPathAccess::Readable),
-        false>,
-        "",
-        "FILEPATH",
-        "openapi-file",
-        enuConfigSource::Arg | enuConfigSource::File);
-
-tmplConfigurable<FilePath_t>     Configs::SwaggerUI(
-        Configs::makeConfig("SwaggerUI"),
-        "Directory where swaggerUI files reside",
-        "",
-        Validators::tmplPathAccessValidator<
-        TARGOMAN_PATH_ACCESS(enuPathAccess::Dir | enuPathAccess::Readable),
-        false>,
-        "",
-        "DIRECTORY",
-        "swaggerui-path",
-        enuConfigSource::Arg | enuConfigSource::File);
-
-tmplConfigurable<FilePath_t>     Configs::PublicPath(
-        Configs::makeConfig("PublicFolder"),
-        "Directory static files are stored",
-        "",
-        Validators::tmplPathAccessValidator<
-        TARGOMAN_PATH_ACCESS(enuPathAccess::Dir | enuPathAccess::Readable),
-        false>,
-        "",
-        "DIRECTORY",
-        "public-path",
-        enuConfigSource::Arg | enuConfigSource::File);
-
-
-tmplConfigurable<QString> Configs::MasterDB::Host(
-        Configs::MasterDB::makeConfig("Host"),
-        "Database Host address",
-        "127.0.0.1",
-        ReturnTrueCrossValidator(),
-        "",
-        "HOST",
-        "db-host",
-        enuConfigSource::Arg | enuConfigSource::File);
-
-tmplRangedConfigurable<quint16> Configs::MasterDB::Port(
-        Configs::MasterDB::makeConfig("Port"),
-        "Database port",
-        10, 65000,
-        3306,
-        ReturnTrueCrossValidator(),
-        "",
-        "PORT",
-        "db-port",
-        enuConfigSource::Arg | enuConfigSource::File);
-
-tmplConfigurable<QString> Configs::MasterDB::User(
-        Configs::MasterDB::makeConfig("User"),
-        "Database username for connection",
-        "root",
-        ReturnTrueCrossValidator(),
-        "",
-        "USER",
-        "db-user",
-        enuConfigSource::Arg | enuConfigSource::File);
-
-tmplConfigurable<QString> Configs::MasterDB::Pass(
-        Configs::MasterDB::makeConfig("Pass"),
-        "Database password",
-        "",
-        ReturnTrueCrossValidator(),
-        "",
-        "PASS",
-        "db-pass",
-        enuConfigSource::Arg | enuConfigSource::File);
-
-tmplConfigurable<QString> Configs::MasterDB::Schema(
-        Configs::MasterDB::makeConfig("Schema"),
-        "Database schema",
-        "MT",
-        ReturnTrueCrossValidator(),
-        "",
-        "SCHEMA",
-        "db-schema",
-        enuConfigSource::Arg | enuConfigSource::File);
-*/
+                    break;
+                }
+            }
+            ++dbIdx;
+        }
+    }
+}
 
 } //namespace Targoman::Migrate
 

@@ -46,7 +46,7 @@ bool cmdHistory::run()
 //    qDebug() << "** MigrationHistories ******************************";
 //    dump(MigrationHistories);
 
-    SourceMigrationFileInfoMap MigrationFiles;
+    ProjectMigrationFileInfoMap MigrationFiles;
     for (MigrationHistoryMap::const_iterator it = MigrationHistories.constBegin();
          it != MigrationHistories.constEnd();
          it++)
@@ -63,21 +63,21 @@ bool cmdHistory::run()
                 QString key = it.key();
                 const stuHistoryAppliedItem &MigrationHistoryAppliedItem = it.value();
 
-                QString MigrationName = QString("%1:%2@%3")
+                QString MigrationName = QString("%1:%2/%3")
                                         .arg(MigrationHistoryAppliedItem.MigrationName)
                                         .arg(MigrationHistoryItem.Scope)
-                                        .arg(MigrationHistoryItem.Source);
+                                        .arg(MigrationHistoryItem.Project);
 
-                stuSourceMigrationFileInfo SourceMigrationFileInfo(
+                stuProjectMigrationFileInfo ProjectMigrationFileInfo(
                     MigrationName,
                     MigrationHistoryAppliedItem.MigrationName,
                     MigrationHistoryItem.Scope,
-                    MigrationHistoryItem.Source,
+                    MigrationHistoryItem.Project,
                     MigrationHistoryAppliedItem.AppliedAt.toString("yyyy-MM-dd hh:mm:ss a")
                 );
 
 //                qDebug() << "*" << MigrationName;
-                MigrationFiles.insert(MigrationName, SourceMigrationFileInfo);
+                MigrationFiles.insert(MigrationName, ProjectMigrationFileInfo);
             }
         }
     }

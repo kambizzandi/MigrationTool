@@ -56,8 +56,13 @@ CommandManager::CommandManager(QObject *parent) : QObject(parent)
 
 void CommandManager::slotExecute()
 {
+//    QCoreApplication::exit(-1);
+//    return;
+
     try
     {
+        Configs::FillRunningParameters();
+
         intfCommand *Command = nullptr;
 
         switch (Configs::Command.value())
@@ -123,29 +128,18 @@ void CommandManager::slotExecute()
         //---------------------------------
         if (Command->needDB())
         {
-            if (Configs::Sources.size() == 0)
-                throw exTargomanBase("Source not defined");
-
-            for (size_t idxSource=0; idxSource<Configs::Sources.size(); idxSource++)
+            for (QMap<QString, QString>::const_iterator it = Configs::RunningParameters.ProjectDBConnectionStrings.constBegin();
+                 it != Configs::RunningParameters.ProjectDBConnectionStrings.constEnd();
+                 it++)
             {
-                stuMigrationSource &Source = Configs::Sources[idxSource];
+                QString ProjectDestinationKey = it.key();
+                QString ConnStringWithSchema = it.value();
 
-                if (Source.DB.size() > 0)
-                {
-                    for (size_t idxDB=0; idxDB<Source.DB.size(); idxDB++)
-                    {
-                        stuMigrationDB &DB = Source.DB[idxDB];
+                qDebug() << "addDBEngine" << ProjectDestinationKey;
+                clsDAC::addDBEngine(enuDBEngines::MySQL, ProjectDestinationKey);
 
-                        clsDAC::addDBEngine(enuDBEngines::MySQL, DB.Schema.value());
-                        clsDAC::setConnectionString(QString("HOST=%1;PORT=%2;USER=%3;PASSWORD=%4;SCHEMA=%5;")
-                                                    .arg(DB.Host.value())
-                                                    .arg(DB.Port.value())
-                                                    .arg(DB.UserName.value())
-                                                    .arg(DB.Password.value())
-                                                    .arg(DB.Schema.value())
-                                                    , DB.Schema.value());
-                    }
-                }
+                qDebug() << "setConnectionString" << ProjectDestinationKey << "=" << ConnStringWithSchema;
+                clsDAC::setConnectionString(ConnStringWithSchema, ProjectDestinationKey);
             }
         }
 
@@ -160,6 +154,25 @@ void CommandManager::slotExecute()
         QCoreApplication::exit(-1);
         return;
     }
+
+//qDebug() << Configs::TestStringList.value();
+
+//QStringList aaa;
+//aaa.append("x");
+//aaa.append("y");
+//aaa.append("z");
+//qDebug() << aaa;
+
+//QVariant b = "m,n,o";
+//qDebug() << b;
+//qDebug() << b.canConvert(QVariant::StringList);
+//qDebug() << (b.userType() == QMetaType::QStringList);
+
+//QVariant c = QStringList({ "m", "n", "o" });
+//qDebug() << c;
+//qDebug() << c.canConvert(QVariant::StringList);
+//qDebug() << (c.userType() == QMetaType::QStringList);
+
 }
 
 } //namespace Targoman::Migrate
@@ -167,10 +180,10 @@ void CommandManager::slotExecute()
 /*
 rm `find . -name .migrations`
 
-DROP TABLE if EXISTS AAA.tblMigrations;
-DROP TABLE if EXISTS Advert.tblMigrations;
-DROP TABLE if EXISTS Common.tblMigrations;
 DROP TABLE if EXISTS CommonFuncs.tblMigrations;
 DROP TABLE if EXISTS I18N.tblMigrations;
+DROP TABLE if EXISTS AAA.tblMigrations;
+DROP TABLE if EXISTS Common.tblMigrations;
+DROP TABLE if EXISTS Advert.tblMigrations;
 DROP TABLE if EXISTS Ticketing.tblMigrations;
 */

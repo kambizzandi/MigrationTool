@@ -40,11 +40,13 @@ bool cmdCreateLocal::run()
 {
     QString FileName;
     QString FullFileName;
+    quint32 ProjectIndex;
 
     if (ChooseCreateMigrationProperties(
                 enuChooseCreateMigrationScope::local,
                 FileName,
-                FullFileName
+                FullFileName,
+                ProjectIndex
                 ) == false)
         return true;
 

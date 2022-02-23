@@ -44,7 +44,7 @@ bool cmdList::run()
     qInfo() << "Unapplied migrations:";
     qInfo() << LINE_SPLITTER;
 
-    SourceMigrationFileInfoMap MigrationFiles;
+    ProjectMigrationFileInfoMap MigrationFiles;
     ExtractMigrationFiles(MigrationFiles);
 //    qDebug() << "** All MigrationFiles ******************************";
 //    dump(MigrationFiles);

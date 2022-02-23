@@ -36,41 +36,41 @@ void cmdShowConf::help()
 
 bool cmdShowConf::run()
 {
-    if (Configs::Sources.size() == 0)
+//    if (Configs::Sources.size() == 0)
     {
         qInfo() << "nothing to show";
         return true;
     }
 
-    qInfo().noquote()
-            << QString("Source").leftJustified(20)
-            << "Databases"
-            << endl
-            << QString(100, '-')
-            ;
+//    qInfo().noquote()
+//            << QString("Source").leftJustified(20)
+//            << "Databases"
+//            << endl
+//            << QString(100, '-')
+//            ;
 
-    for (size_t idxSource=0; idxSource<Configs::Sources.size(); idxSource++)
-    {
-        stuMigrationSource &Source = Configs::Sources[idxSource];
+//    for (size_t idxSource=0; idxSource<Configs::Sources.size(); idxSource++)
+//    {
+//        stuMigrationSource &Source = Configs::Sources[idxSource];
 
-        QStringList DBs;
-        if (Source.DB.size() > 0)
-        {
-            for (size_t idxDB=0; idxDB<Source.DB.size(); idxDB++)
-            {
-                stuMigrationDB &DB = Source.DB[idxDB];
+//        QStringList DBs;
+//        if (Source.DB.size() > 0)
+//        {
+//            for (size_t idxDB=0; idxDB<Source.DB.size(); idxDB++)
+//            {
+//                stuMigrationDB &DB = Source.DB[idxDB];
 
-                DBs.append(DB.Schema.value());
-            }
-        }
+//                DBs.append(DB.Schema.value());
+//            }
+//        }
 
-        qInfo().noquote()
-                << Source.Name.value().leftJustified(20)
-                << DBs.join(", ")
-                ;
-    }
+//        qInfo().noquote()
+//                << Source.Name.value().leftJustified(20)
+//                << DBs.join(", ")
+//                ;
+//    }
 
-    qInfo() << "";
+//    qInfo() << "";
 
     return true;
 }

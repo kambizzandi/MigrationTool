@@ -146,18 +146,43 @@ struct Configs
     static tmplConfigurable<QString>                    MigrationsFolderName;
     static tmplConfigurable<QString>                    GlobalHistoryTableName;
     static tmplConfigurable<QString>                    LocalHistoryFileName;
-    static tmplConfigurable<QString>                    ApplyToAllSourceName;
-    static tmplConfigurableArray<stuMigrationSource>    Sources;
+//    static tmplConfigurable<QString>                    ApplyToAllSourceName;
+//    static tmplConfigurableArray<stuMigrationSource>    Sources;
 
-    static tmplConfigurableArray<stuDBServers>          DBServers;
-    static tmplConfigurableArray<stuRunningModes>       RunningModes;
-    static tmplConfigurableArray<stuProjects>           Projects;
+    static tmplConfigurableArray<stuDBServer>           DBServers;
+    static tmplConfigurableArray<stuRunningMode>        RunningModes;
     static tmplConfigurable<QString>                    ActiveRunnigMode;
+    static tmplConfigurableArray<stuProject>            Projects;
 
     static tmplConfigurable<bool>                       DBOnly;
     static tmplConfigurable<bool>                       LocalOnly;
 
     static tmplConfigurable<QString>                    DefaultEditor;
+
+//    static tmplConfigurable<QStringList>                TestStringList;
+
+    //--------------------------
+    struct stuRunningParameters
+    {
+//        int RunningModeIndex;
+
+//        QString       RunningModeName; //dev|prod
+        QStringList   RunningModeDBServers; //devdb1,devdb2 | db1,db2,db3
+
+        //key: Project.Name
+        QMap<QString, QStringList> ProjectAllowedDBServers;
+
+        //key: Project.Name @ DBServer.Name
+        QMap<QString, QString> ProjectDBConnectionStrings;
+
+        stuRunningParameters() :
+//            RunningModeIndex(-1),
+//            RunningModeName(),
+            RunningModeDBServers()
+        {}
+    };
+    static stuRunningParameters RunningParameters;
+    static void FillRunningParameters();
 };
 
 } // namespace Targoman::Migrate

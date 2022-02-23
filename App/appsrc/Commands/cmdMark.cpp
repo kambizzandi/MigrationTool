@@ -42,7 +42,7 @@ void cmdMark::help()
 
 bool cmdMark::run()
 {
-    SourceMigrationFileInfoMap MigrationFiles;
+    ProjectMigrationFileInfoMap MigrationFiles;
     ExtractMigrationFiles(MigrationFiles);
 //    qDebug() << "** All MigrationFiles ******************************";
 //    dump(MigrationFiles);
@@ -139,8 +139,8 @@ bool cmdMark::run()
                 << MigrationFile.FileName
                 << " ["
                 << MigrationFile.Scope
-                << " @ "
-                << MigrationFile.Source
+                << "/"
+                << MigrationFile.Project
                 << "]"
 //                << MigrationFile.FullFileName
                 << " : "

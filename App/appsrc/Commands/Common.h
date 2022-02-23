@@ -31,6 +31,9 @@ using namespace Targoman::Common;
 #include "libTargomanDBM/clsDAC.h"
 using namespace Targoman::DBManager;
 
+#include <iostream>
+using namespace std;
+
 namespace Targoman::Migrate::Commands {
 
 enum class enuChooseCreateMigrationScope
@@ -44,8 +47,7 @@ inline bool ChooseCreateMigrationProperties(
         enuChooseCreateMigrationScope _chooseScope,
         QString &_fileName,
         QString &_fullFileName,
-        qint32 *_sourceIndex = nullptr,
-        qint32 *_dBIndex = nullptr
+        quint32 &_projectIndex
     )
 {
     QDir BaseFolder(Configs::MigrationsFolderName.value());
@@ -54,83 +56,67 @@ inline bool ChooseCreateMigrationProperties(
 
     qInfo().noquote()
             << "    "
-            << "Source"
+            << "Project"
             ;
     qInfo() << LINE_SPLITTER;
 
-    struct stuSourceInfo {
-        QString SourceName;
-        qint32 SourceIndex;
-        qint32 DBIndex;
+    struct stuProjectInfo {
+        QString Name;
+        qint32 Index;
 
-        stuSourceInfo(
-                QString _sourceName,
-                qint32 _sourceIndex = -1,
-                qint32 _dBIndex = -1
+        stuProjectInfo(
+                QString _name,
+                qint32 _index = -1
             ) :
-            SourceName(_sourceName),
-            SourceIndex(_sourceIndex),
-            DBIndex(_dBIndex)
+            Name(_name),
+            Index(_index)
         {}
-
     };
 
-    QList<stuSourceInfo> Sources;
-    if (_chooseScope != enuChooseCreateMigrationScope::dbdiff)
-    {
-        Sources.append(stuSourceInfo(Configs::ApplyToAllSourceName.value()));
-        qInfo().noquote()
-                << "   1"
-                << QString("Apply To All [%1]").arg(Configs::ApplyToAllSourceName.value())
-                ;
-    }
+    QList<stuProjectInfo> Projects;
 
-    if (Configs::Sources.size() > 0)
+    for (size_t idxProject=0; idxProject<Configs::Projects.size(); idxProject++)
     {
-        for (size_t idxSource=0; idxSource<Configs::Sources.size(); idxSource++)
+        stuProject &Project = Configs::Projects[idxProject];
+
+        QString Name = Project.Name.value();
+
+        if (_chooseScope == enuChooseCreateMigrationScope::local)
         {
-            stuMigrationSource &Source = Configs::Sources[idxSource];
-
-            if (_chooseScope == enuChooseCreateMigrationScope::local)
+            if (Project.AllowLocal.value())
             {
-                QString Name = Source.Name.value();
-
-                Sources.append(stuSourceInfo(Name, idxSource));
+                Projects.append(stuProjectInfo(Name, idxProject));
 
                 qInfo().noquote()
-                        << QString::number(Sources.length()).rightJustified(4)
+                        << QString::number(Projects.length()).rightJustified(4)
                         << Name
+                        << (Project.ApplyToAllProjects.value() ? "[Apply to all]" : "")
                         ;
             }
-            else
+        }
+        else if (Project.AllowDB.value()
+                 && (Project.ApplyToAllProjects.value() || Configs::RunningParameters.ProjectAllowedDBServers.contains(Name)))
+        {
+            if ((_chooseScope != enuChooseCreateMigrationScope::dbdiff) || (Project.ApplyToAllProjects.value() == false))
             {
-                for (size_t idxDB=0; idxDB<Source.DB.size(); idxDB++)
-                {
-                    stuMigrationDB &DB = Source.DB[idxDB];
+                Projects.append(stuProjectInfo(Name, idxProject));
 
-                    QString Name = QString("%1.%2")
-                                   .arg(Source.Name.value())
-                                   .arg(DB.Schema.value())
-                                   ;
-
-                    Sources.append(stuSourceInfo(Name, idxSource, idxDB));
-
-                    qInfo().noquote()
-                            << QString::number(Sources.length()).rightJustified(4)
-                            << Name
-                            ;
-                }
+                qInfo().noquote()
+                        << QString::number(Projects.length()).rightJustified(4)
+                        << Name
+                        << (Project.ApplyToAllProjects.value() ? "[Apply to all]" : "")
+                        ;
             }
         }
     }
 
     qInfo() << "";
 
-    qint32 SourceID;
+    qint32 ProjectID;
     while (true)
     {
         qStdout()
-                << "For which source do you want to create a new "
+                << "For which project do you want to create a new "
                 << (_chooseScope == enuChooseCreateMigrationScope::local ? "local" : "db")
                 << " migration file?"
                 << " "
@@ -139,11 +125,11 @@ inline bool ChooseCreateMigrationProperties(
                 << reverse("[") << reverse(bold("1")) << reverse("]")
                 ;
 
-        if (Sources.length() > 1)
+        if (Projects.length() > 1)
         {
             qStdout()
                     << reverse(" to ")
-                    << reverse("[") << reverse(bold(QString::number(Sources.length()))) << reverse("]")
+                    << reverse("[") << reverse(bold(QString::number(Projects.length()))) << reverse("]")
                     ;
         }
         qStdout() << " ";
@@ -158,19 +144,19 @@ inline bool ChooseCreateMigrationProperties(
             return false;
 
         bool ok = false;
-        SourceID = value.toInt(&ok);
+        ProjectID = value.toInt(&ok);
 
         if (ok)
         {
-            if ((SourceID <= 0) || (SourceID > Sources.length()))
-                qStdout() << "Input must be between 1 and " << Sources.length() << endl;
+            if ((ProjectID <= 0) || (ProjectID > Projects.length()))
+                qStdout() << "Input must be between 1 and " << Projects.length() << endl;
             else
             {
                 qInfo().noquote().nospace()
                         << "Your choose: ["
-                        << SourceID
+                        << ProjectID
                         << "- "
-                        << Sources[SourceID - 1].SourceName
+                        << Projects[ProjectID - 1].Name
                         << "]"
                 ;
                 break;
@@ -181,7 +167,7 @@ inline bool ChooseCreateMigrationProperties(
     }
     qInfo() << "";
 
-    QString SourceLabel;
+    QString MigrationLabel;
     while (true)
     {
         qStdout()
@@ -194,21 +180,21 @@ inline bool ChooseCreateMigrationProperties(
                 ;
         qStdout().flush();
 
-        SourceLabel = qStdIn().readLine().trimmed();
+        MigrationLabel = qStdIn().readLine().trimmed();
 
-        if (SourceLabel.isEmpty())
+        if (MigrationLabel.isEmpty())
             return false;
 
-        if (QRegExp("[a-zA-Z0-9_]+").exactMatch(SourceLabel) == false)
+        if (QRegExp("[a-zA-Z0-9_]+").exactMatch(MigrationLabel) == false)
         {
-            SourceLabel = "";
+            MigrationLabel = "";
             qStdout() << "Invalid characters in source label." << endl;
             continue;
         }
 
-        if (SourceLabel.length() > 64)
+        if (MigrationLabel.length() > 64)
         {
-            SourceLabel = "";
+            MigrationLabel = "";
             qStdout() << "Source label length must be <= 64 characters" << endl;
             continue;
         }
@@ -224,39 +210,20 @@ inline bool ChooseCreateMigrationProperties(
 //             << Sources[SourceID - 1].DBIndex
 //             ;
 
-    if (_sourceIndex != nullptr)
-        *_sourceIndex = Sources[SourceID - 1].SourceIndex;
-    if (_dBIndex != nullptr)
-        *_dBIndex = Sources[SourceID - 1].DBIndex;
+    _projectIndex = Projects[ProjectID - 1].Index;
+//    stuProject &SelectedProject = Configs::Projects[_projectIndex];
 
     _fileName = QString("m%1_%2.%3")
                 .arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss"))
-                .arg(SourceLabel)
+                .arg(MigrationLabel)
                 .arg(_chooseScope == enuChooseCreateMigrationScope::local ? "sh" : "sql")
                 ;
 
-    if ((_chooseScope != enuChooseCreateMigrationScope::dbdiff) && (SourceID == 1))
-    {
-        _fullFileName = QString("%1/%2/%3")
-                        .arg(BaseFolder.path())
-                        .arg(Sources[SourceID - 1].SourceName)
-                        .arg(_chooseScope == enuChooseCreateMigrationScope::local ? "local" : "db")
-                        ;
-    }
-    else if (_chooseScope == enuChooseCreateMigrationScope::local)
-    {
-        _fullFileName = QString("%1/%2/local")
-                        .arg(BaseFolder.path())
-                        .arg(Sources[SourceID - 1].SourceName)
-                        ;
-    }
-    else
-    {
-        _fullFileName = QString("%1/%2")
-                        .arg(BaseFolder.path())
-                        .arg(Sources[SourceID - 1].SourceName.replace(".", "/db/"))
-                        ;
-    }
+    _fullFileName = QString("%1/%2/%3")
+                    .arg(BaseFolder.path())
+                    .arg(Projects[ProjectID - 1].Name)
+                    .arg(_chooseScope == enuChooseCreateMigrationScope::local ? "local" : "db")
+                    ;
 
     QDir().mkpath(_fullFileName);
 
@@ -265,65 +232,77 @@ inline bool ChooseCreateMigrationProperties(
     return true;
 }
 
-struct stuSourceMigrationFileInfo {
+struct stuProjectMigrationFileInfo {
     QString MigrationName;
     QString FileName;
     QString Scope; //db, local
-    QString Source;
+    QString Project;
     QString FullFileName;
 
-    stuSourceMigrationFileInfo(const stuSourceMigrationFileInfo &_other) :
+    stuProjectMigrationFileInfo(const stuProjectMigrationFileInfo &_other) :
         MigrationName(_other.MigrationName),
         FileName(_other.FileName),
         Scope(_other.Scope),
-        Source(_other.Source),
+        Project(_other.Project),
         FullFileName(_other.FullFileName)
     {}
 
-    stuSourceMigrationFileInfo(
+    stuProjectMigrationFileInfo(
             const QString &_migrationName,
             const QString &_fileName,
             const QString &_scope,
-            const QString &_source,
+            const QString &_project,
             const QString &_fullFileName
         ) :
         MigrationName(_migrationName),
         FileName(_fileName),
         Scope(_scope),
-        Source(_source),
+        Project(_project),
         FullFileName(_fullFileName)
     {}
 };
 //key: MigrationName
-typedef QMap<QString, stuSourceMigrationFileInfo> SourceMigrationFileInfoMap;
+typedef QMap<QString, stuProjectMigrationFileInfo> ProjectMigrationFileInfoMap;
 
-inline void dump(SourceMigrationFileInfoMap &_var, bool _renderForAppliedHistoryItem = false)
+inline void dump(ProjectMigrationFileInfoMap &_var, bool _renderForAppliedHistoryItem = false)
 {
+    int maxWidth_Name = QString("File Name").length(),
+        maxWidth_Project = QString("Project").length();
+    foreach (auto V, _var)
+    {
+        maxWidth_Name = max(maxWidth_Name, V.FileName.length());
+        maxWidth_Project = max(maxWidth_Project, V.Project.length());
+    }
+
     qDebug().noquote() //.nospace()
-//                << QString("key").leftJustified(60)
-            << "    "
-            << QString("FileName").leftJustified(50)
+            << "     "
+//#ifdef QT_DEBUG
+//            << QString("key").leftJustified(60)
+//#endif
+            << QString("File Name").leftJustified(maxWidth_Name)
             << QString("Scope").leftJustified(8)
-            << QString("Source").leftJustified(20)
-            << (_renderForAppliedHistoryItem ? "Applied At" : "FullFileName")
+            << QString("Project").leftJustified(maxWidth_Project)
+            << (_renderForAppliedHistoryItem ? "Applied At" : "Full File Name")
             ;
     qDebug().noquote()
             << QString(150, '-');
 
     int idx = 1;
-    for (SourceMigrationFileInfoMap::const_iterator it = _var.constBegin();
+    for (ProjectMigrationFileInfoMap::const_iterator it = _var.constBegin();
          it != _var.constEnd();
          it++)
     {
         QString key = it.key();
-        const stuSourceMigrationFileInfo &val = it.value();
+        const stuProjectMigrationFileInfo &val = it.value();
 
         qDebug().noquote() //.nospace()
-                << QString("%1").arg(idx).rightJustified(4)
+                << QString::number(idx).rightJustified(4) + ")"
+//#ifdef QT_DEBUG
 //                << key.leftJustified(60)
-                << val.FileName.leftJustified(50)
+//#endif
+                << val.FileName.leftJustified(maxWidth_Name)
                 << val.Scope.leftJustified(8)
-                << val.Source.leftJustified(20)
+                << val.Project.leftJustified(maxWidth_Project)
                 << val.FullFileName
                 ;
 
@@ -354,14 +333,14 @@ struct stuHistoryAppliedItem {
 };
 
 struct stuMigrationHistory {
-    QString Source; //App, App.CommonFuncs
+    QString Project; //App, App.CommonFuncs
     QString Scope; //db, local
     QString HistoryFileOrTableName;
     QMap<QString, stuHistoryAppliedItem> AppliedItems;
     bool Exists;
 
     stuMigrationHistory(const stuMigrationHistory &_other) :
-        Source(_other.Source),
+        Project(_other.Project),
         Scope(_other.Scope),
         HistoryFileOrTableName(_other.HistoryFileOrTableName),
         AppliedItems(_other.AppliedItems),
@@ -369,12 +348,12 @@ struct stuMigrationHistory {
     {}
 
     stuMigrationHistory(
-            const QString &_source,
+            const QString &_project,
             const QString &_scope,
             const QString &_historyFileOrTableName,
             const QMap<QString, stuHistoryAppliedItem> &_appliedItems
         ) :
-        Source(_source),
+        Project(_project),
         Scope(_scope),
         HistoryFileOrTableName(_historyFileOrTableName),
         AppliedItems(_appliedItems),
@@ -415,7 +394,7 @@ inline void dump(const QMap<QString, stuHistoryAppliedItem> &_var)
 inline void dump(MigrationHistoryMap &_var)
 {
     qDebug().noquote() //.nospace()
-            << QString("Source").leftJustified(20)
+            << QString("Project").leftJustified(20)
             << QString("Scope").leftJustified(5)
             << QString("Count").leftJustified(6)
             << QString("Exists").leftJustified(6)
@@ -432,7 +411,7 @@ inline void dump(MigrationHistoryMap &_var)
         const stuMigrationHistory &val = it.value();
 
         qDebug().noquote() //.nospace()
-                << val.Source.leftJustified(20)
+                << val.Project.leftJustified(20)
                 << val.Scope.leftJustified(5)
                 << QString("%1").arg(val.AppliedItems.count()).leftJustified(6)
                 << QString(val.Exists ? "Yes" : "No").leftJustified(6)
@@ -462,7 +441,7 @@ inline void dump(QMap<QString, QString> &_var)
     }
 }
 
-inline void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
+inline void ExtractMigrationFiles(ProjectMigrationFileInfoMap &_migrationFiles)
 {
     QDir BaseFolder(Configs::MigrationsFolderName.value());
     ///TODO: check if dir exists
@@ -472,15 +451,24 @@ inline void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
 
     QMap<QString, QString> ApplyToAllMigrationFiles;
 
-    //get file list of ApplyToAllSourceName
+    //get file list of ApplyToAllProjects
     //  db    -> ApplyToAllMigrationFiles
     //  local -> MigrationFiles
-    if (Configs::ApplyToAllSourceName.value().isEmpty() == false)
+    for (size_t idxProject=0; idxProject<Configs::Projects.size(); idxProject++)
     {
-        if (BaseFolder.cd(Configs::ApplyToAllSourceName.value()))
+        stuProject &Project = Configs::Projects[idxProject];
+
+        if (Project.ApplyToAllProjects.value() == false)
+            continue;
+
+        if (BaseFolder.cd(Project.Name.value()))
         {
             //db
-            if ((Configs::LocalOnly.value() == false) && BaseFolder.cd("db"))
+            if ((Configs::LocalOnly.value() == false)
+//                    && (Configs::Projects.size() > 0)
+                    && (Configs::RunningParameters.ProjectAllowedDBServers.isEmpty() == false)
+                    && BaseFolder.cd("db")
+                )
             {
                 QDirIterator itdb(BaseFolder.path(), QDir::Files);
                 while (itdb.hasNext())
@@ -494,7 +482,7 @@ inline void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
                         continue;
                     }
 
-//                    QString MigrationName = QString("%1:db@*").arg(FileName);
+//                    QString MigrationName = QString("%1:db/*").arg(FileName);
 
 //                    qDebug() << "[*]" << FullFileName << "\t\t" << FileName;
 
@@ -514,24 +502,22 @@ inline void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
                     if (QRegExp(REGEX_PATTERN_MIGRATION_FILENAME).exactMatch(FileName) == false)
                     {
                         if (FileName != Configs::LocalHistoryFileName.value())
-//                            _localHistoryFiles.insert(Configs::ApplyToAllSourceName.value(), FullFileName);
-//                        else
                             if (QRegExp(REGEX_PATTERN_MIGRATION_LOG_FILENAME).exactMatch(FileName) == false)
                                 qDebug() << "invalid file name:" << FileName << "in" << BaseFolder.path();
 
                         continue;
                     }
 
-                    QString MigrationName = QString("%1:local@%2").arg(FileName).arg(Configs::ApplyToAllSourceName.value());
+                    QString MigrationName = QString("%1:local/%2").arg(FileName).arg(Project.Name.value());
 
 //                    qDebug() << "[*]" << FullFileName << "\t\t" << MigrationName;
 
                     _migrationFiles.insert(MigrationName,
-                                          stuSourceMigrationFileInfo(
+                                          stuProjectMigrationFileInfo(
                                               MigrationName,
                                               FileName,
                                               "local",
-                                              Configs::ApplyToAllSourceName.value(),
+                                              Project.Name.value(),
                                               FullFileName
                                           ));
                 }
@@ -545,16 +531,19 @@ inline void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
 
     //get list of exists sources
     //  extract file list of every source
-    if (Configs::Sources.size() > 0)
+//    if (Configs::Projects.size() == 0)
+    if (Configs::RunningParameters.ProjectAllowedDBServers.isEmpty())
+        return;
+
+    for (size_t idxProject=0; idxProject<Configs::Projects.size(); idxProject++)
     {
-        for (size_t idxSource=0; idxSource<Configs::Sources.size(); idxSource++)
+        stuProject &Project = Configs::Projects[idxProject];
+
+        QStringList LookupScopes;
+
+        if ((Configs::LocalOnly.value() == false) && Project.AllowDB.value())
         {
-            stuMigrationSource &Source = Configs::Sources[idxSource];
-
-//            qDebug() << Source.Name.value();
-
-            //1: fill MigrationFiles by ApplyToAllMigrationFiles (* -> source name)
-            if ((Configs::LocalOnly.value() == false) && (Source.DB.size() > 0) && (ApplyToAllMigrationFiles.isEmpty() == false))
+            if (ApplyToAllMigrationFiles.isEmpty() == false)
             {
                 for (QMap<QString, QString>::const_iterator it = ApplyToAllMigrationFiles.constBegin();
                      it != ApplyToAllMigrationFiles.constEnd();
@@ -563,118 +552,100 @@ inline void ExtractMigrationFiles(SourceMigrationFileInfoMap &_migrationFiles)
                     QString FileName = it.key();
                     QString FullFileName = it.value();
 
-                    for (size_t idxDB=0; idxDB<Source.DB.size(); idxDB++)
+                    foreach (QString AllowedDBServer, Configs::RunningParameters.ProjectAllowedDBServers[Project.Name.value()])
                     {
-                        stuMigrationDB &DB = Source.DB[idxDB];
-
-                        QString MigrationName = QString("%1:db@%2.%3")
+                        QString MigrationName = QString("%1:db/%2@%3")
                                                 .arg(FileName)
-                                                .arg(Source.Name.value())
-                                                .arg(DB.Schema.value())
+                                                .arg(Project.Name.value())
+                                                .arg(AllowedDBServer)
                                                 ;
 
-//                        qDebug() << "[" << Source.Name.value() << "]" << FullFileName << "\t\t" << MigrationName;
+//                        qDebug() << "[" << Project.Name.value() << "]" << FullFileName << "\t\t" << MigrationName;
 
                         _migrationFiles.insert(MigrationName,
-                                              stuSourceMigrationFileInfo(
+                                              stuProjectMigrationFileInfo(
                                                   MigrationName,
                                                   FileName,
                                                   "db",
-                                                  QString("%1.%2").arg(Source.Name.value()).arg(DB.Schema.value()),
+                                                  Project.Name.value() + "@" + AllowedDBServer,
                                                   FullFileName
                                               ));
                     }
                 }
-            }
+            } //ApplyToAllMigrationFiles.isEmpty() == false
 
-            if (BaseFolder.cd(Source.Name.value()))
+            LookupScopes.append("db");
+        } //Project.AllowDB
+
+        if ((Configs::DBOnly.value() == false) && Project.AllowLocal.value())
+            LookupScopes.append("local");
+
+        if ((LookupScopes.isEmpty() == false) && BaseFolder.cd(Project.Name.value()))
+        {
+            foreach (QString Scope, LookupScopes)
             {
-                //2: fill MigrationFiles by source/db
-                if ((Configs::LocalOnly.value() == false) && (Source.DB.size() > 0) && BaseFolder.cd("db"))
+                if (BaseFolder.cd(Scope))
                 {
-                    for (size_t idxDB=0; idxDB<Source.DB.size(); idxDB++)
+                    QDirIterator itFile(BaseFolder.path(), QDir::Files | QDir::Hidden);
+                    while (itFile.hasNext())
                     {
-                        stuMigrationDB &DB = Source.DB[idxDB];
-
-                        if (BaseFolder.cd(DB.Schema.value()))
-                        {
-                            QDirIterator itdb(BaseFolder.path(), QDir::Files);
-                            while (itdb.hasNext())
-                            {
-                                QString FullFileName = itdb.next();
-                                QString FileName = BaseFolder.relativeFilePath(FullFileName);
-                                if (QRegExp(REGEX_PATTERN_MIGRATION_FILENAME).exactMatch(FileName) == false)
-                                {
-                                    if (QRegExp(REGEX_PATTERN_MIGRATION_LOG_FILENAME).exactMatch(FileName) == false)
-                                        qDebug() << "invalid file name:" << FileName << "in" << BaseFolder.path();
-                                    continue;
-                                }
-
-                                QString MigrationName = QString("%1:db@%2.%3")
-                                                        .arg(FileName)
-                                                        .arg(Source.Name.value())
-                                                        .arg(DB.Schema.value())
-                                                        ;
-
-//                                qDebug() << "[" << Source.Name.value() << "]" << FullFileName << "\t\t" << MigrationName;
-
-                                _migrationFiles.insert(MigrationName,
-                                                      stuSourceMigrationFileInfo(
-                                                          MigrationName,
-                                                          FileName,
-                                                          "db",
-                                                          QString("%1.%2").arg(Source.Name.value()).arg(DB.Schema.value()),
-                                                          FullFileName
-                                                      ));
-                            }
-
-                            BaseFolder.cdUp();
-                        }
-                    }
-
-                    BaseFolder.cdUp();
-                }
-
-                //3: fill MigrationFiles by source/local
-                if ((Configs::DBOnly.value() == false) && BaseFolder.cd("local"))
-                {
-                    QDirIterator itlocal(BaseFolder.path(), QDir::Files | QDir::Hidden);
-                    while (itlocal.hasNext())
-                    {
-                        QString FullFileName = itlocal.next();
+                        QString FullFileName = itFile.next();
                         QString FileName = BaseFolder.relativeFilePath(FullFileName);
                         if (QRegExp(REGEX_PATTERN_MIGRATION_FILENAME).exactMatch(FileName) == false)
                         {
                             if (FileName != Configs::LocalHistoryFileName.value())
-//                                _localHistoryFiles.insert(Source.Name.value(), FullFileName);
-//                            else
                                 if (QRegExp(REGEX_PATTERN_MIGRATION_LOG_FILENAME).exactMatch(FileName) == false)
                                     qDebug() << "invalid file name:" << FileName << "in" << BaseFolder.path();
 
                             continue;
                         }
 
-                        QString MigrationName = QString("%1:local@%2").arg(FileName).arg(Source.Name.value());
+                        if (Scope == "db")
+                        {
+                            foreach (QString AllowedDBServer, Configs::RunningParameters.ProjectAllowedDBServers[Project.Name.value()])
+                            {
+                                QString MigrationName = QString("%1:db/%2@%3")
+                                                        .arg(FileName)
+                                                        .arg(Project.Name.value())
+                                                        .arg(AllowedDBServer)
+                                                        ;
 
-//                        qDebug() << "[" << Source.Name.value() << "]" << FullFileName << "\t\t" << MigrationName;
+        //                        qDebug() << "[" << Project.Name.value() << "]" << FullFileName << "\t\t" << MigrationName;
 
-                        _migrationFiles.insert(MigrationName,
-                                              stuSourceMigrationFileInfo(
-                                                  MigrationName,
-                                                  FileName,
-                                                  "local",
-                                                  Source.Name.value(),
-                                                  FullFileName
-                                              ));
+                                _migrationFiles.insert(MigrationName,
+                                                      stuProjectMigrationFileInfo(
+                                                          MigrationName,
+                                                          FileName,
+                                                          "db",
+                                                          Project.Name.value() + "@" + AllowedDBServer,
+                                                          FullFileName
+                                                      ));
+                            }
+                        }
+                        else
+                        {
+                            QString MigrationName = QString("%1:%2/%3").arg(FileName).arg(Scope).arg(Project.Name.value());
+
+    //                        qDebug() << "[" << Source.Name.value() << "]" << FullFileName << "\t\t" << MigrationName;
+
+                            _migrationFiles.insert(MigrationName,
+                                                  stuProjectMigrationFileInfo(
+                                                      MigrationName,
+                                                      FileName,
+                                                      Scope,
+                                                      Project.Name.value(),
+                                                      FullFileName
+                                                  ));
+                        }
                     }
                     BaseFolder.cdUp();
                 }
 
-                //
-                BaseFolder.cdUp();
-            }
-        }
-    }
+            } //foreach (QString Scope, LookupScopes)
+
+            BaseFolder.cdUp();
+        } //LookupScopes.isEmpty() == false
+    } //for Projects
 }
 
 inline void ExtractMigrationHistories(MigrationHistoryMap &_migrationHistories)
@@ -685,10 +656,12 @@ inline void ExtractMigrationHistories(MigrationHistoryMap &_migrationHistories)
     BaseFolder.makeAbsolute();
 
     //extract db histories from config::db::schema
-    auto fnCheckDBSource = [&](const QString &_sourceName, const stuMigrationDB &_db)
+    auto fnCheckDBSource = [&](const QString &_projectName, const QString &_dbServerName)
     {
+        QString ProjectDBServerName = _projectName + "@" + _dbServerName;
+
         stuMigrationHistory MigrationHistory(
-                    QString("%1.%2").arg(_sourceName).arg(_db.Schema.value()),
+                    ProjectDBServerName,
                     "db",
                     Configs::GlobalHistoryTableName.value(),
                     {}
@@ -696,7 +669,7 @@ inline void ExtractMigrationHistories(MigrationHistoryMap &_migrationHistories)
 
         try
         {
-            clsDAC DAC(_db.Schema.value());
+            clsDAC DAC(ProjectDBServerName);
 
             QString Qry;
 
@@ -707,7 +680,7 @@ inline void ExtractMigrationHistories(MigrationHistoryMap &_migrationHistories)
                    AND TABLE_NAME=?
             )";
             clsDACResult ResultTable = DAC.execQuery("", Qry, {
-                                                         _db.Schema.value(),
+                                                         _projectName,
                                                          Configs::GlobalHistoryTableName.value(),
                                                      });
 
@@ -763,43 +736,40 @@ inline void ExtractMigrationHistories(MigrationHistoryMap &_migrationHistories)
         }
 
         _migrationHistories.insert(
-                    QString("%1.%2").arg(_sourceName).arg(_db.Schema.value()),
+                    ProjectDBServerName,
                     MigrationHistory
                     );
     };
 
-    if ((Configs::LocalOnly.value() == false) && (Configs::Sources.size() > 0))
+    if ((Configs::LocalOnly.value() == false) && (Configs::RunningParameters.ProjectAllowedDBServers.isEmpty() == false))
     {
-        for (size_t idxSource=0; idxSource<Configs::Sources.size(); idxSource++)
+        for (QMap<QString, QStringList>::const_iterator it = Configs::RunningParameters.ProjectAllowedDBServers.constBegin();
+             it != Configs::RunningParameters.ProjectAllowedDBServers.constEnd();
+             it++)
         {
-            stuMigrationSource &Source = Configs::Sources[idxSource];
+            QString ProjectName = it.key();
+            QStringList DBServerNames = it.value();
 
-//            qDebug() << Source.Name.value() << "DB" << Source.DB.size();
-
-            if (Source.DB.size() > 0)
+            foreach (QString DBServerName, DBServerNames)
             {
-                for (size_t idxDB=0; idxDB<Source.DB.size(); idxDB++)
-                {
-                    stuMigrationDB &DB = Source.DB[idxDB];
-                    fnCheckDBSource(Source.Name.value(), DB);
-                }
+//                qDebug() << Source.Name.value() << "DB" << Source.DB.size();
+                fnCheckDBSource(ProjectName, DBServerName);
             }
-
         }
     }
 
     //extract local histories from config::sources
-    auto fnCheckLocalSource = [&](const QString &_sourceName)
+    auto fnCheckLocalSource = [&](const QString &_projectName)
     {
         QString HistoryFullFileName = QString("%1/%2/local/%3")
                                       .arg(BaseFolder.path())
-                                      .arg(_sourceName)
+                                      .arg(_projectName)
                                       .arg(Configs::LocalHistoryFileName.value());
 
 //        qDebug() << HistoryFullFileName;
 
         stuMigrationHistory MigrationHistory(
-                    _sourceName,
+                    _projectName,
                     "local",
                     HistoryFullFileName,
                     {}
@@ -841,35 +811,30 @@ inline void ExtractMigrationHistories(MigrationHistoryMap &_migrationHistories)
         }
 
         _migrationHistories.insert(
-                    _sourceName,
+                    _projectName,
                     MigrationHistory
                     );
     };
 
     if (Configs::DBOnly.value() == false)
     {
-        //1: check ApplyToAllSourceName
-        if (Configs::ApplyToAllSourceName.value().isEmpty() == false)
+        if (Configs::Projects.size() > 0)
         {
-            fnCheckLocalSource(Configs::ApplyToAllSourceName.value());
-        }
-
-        //2: check sources
-        if (Configs::Sources.size() > 0)
-        {
-            for (size_t idxSource=0; idxSource<Configs::Sources.size(); idxSource++)
+            for (size_t idx=0; idx<Configs::Projects.size(); idx++)
             {
-                stuMigrationSource &Source = Configs::Sources[idxSource];
-    //            qDebug() << Source.Name.value();
+                stuProject &Project = Configs::Projects[idx];
 
-                fnCheckLocalSource(Source.Name.value());
+                if (Project.AllowLocal.value() == false)
+                    continue;
+
+                fnCheckLocalSource(Project.Name.value());
             }
         }
     }
 }
 
 inline void RemoveAppliedFromList(
-        SourceMigrationFileInfoMap &_migrationFiles,
+        ProjectMigrationFileInfoMap &_migrationFiles,
         const MigrationHistoryMap &_migrationHistories
     )
 {
@@ -892,20 +857,20 @@ inline void RemoveAppliedFromList(
             QString key = itHistoryItem.key();
             const stuHistoryAppliedItem &HistoryAppliedItem = itHistoryItem.value();
 
-            SourceMigrationFileInfoMap::iterator itMigrationFile = _migrationFiles.begin();
+            ProjectMigrationFileInfoMap::iterator itMigrationFile = _migrationFiles.begin();
             while (itMigrationFile != _migrationFiles.end())
             {
-                stuSourceMigrationFileInfo &SourceMigrationFileInfo = itMigrationFile.value();
+                stuProjectMigrationFileInfo &ProjectMigrationFileInfo = itMigrationFile.value();
 
-                if ((SourceMigrationFileInfo.FileName == HistoryAppliedItem.MigrationName)
-                        && (SourceMigrationFileInfo.Scope == MigrationHistory.Scope)
-                        && (SourceMigrationFileInfo.Source == MigrationHistory.Source)
+                if ((ProjectMigrationFileInfo.FileName == HistoryAppliedItem.MigrationName)
+                        && (ProjectMigrationFileInfo.Scope == MigrationHistory.Scope)
+                        && (ProjectMigrationFileInfo.Project == MigrationHistory.Project)
                     )
                 {
 //                    qDebug() << ">>>>>>>>>>>>>>>>> FOUND:"
-//                             << SourceMigrationFileInfo.FileName
-//                             << SourceMigrationFileInfo.Scope
-//                             << SourceMigrationFileInfo.Source
+//                             << ProjectMigrationFileInfo.FileName
+//                             << ProjectMigrationFileInfo.Scope
+//                             << ProjectMigrationFileInfo.Project
 //                             ;
 
                     itMigrationFile = _migrationFiles.erase(itMigrationFile);
@@ -922,57 +887,20 @@ inline void GetUnappliedMigrations()
 {
 }
 
-inline const stuMigrationDB& FindDBConfigByMigrationFile(const stuSourceMigrationFileInfo &_migrationFile)
-{
-    if (_migrationFile.Scope != "db")
-        throw exTargomanBase(QString("Migration %1 is not db scope").arg(_migrationFile.Source));
-
-    QStringList Parts = _migrationFile.Source.split('.');
-    QString SourceName = Parts[0];
-    QString DBSchema = Parts[1];
-
-    if (Configs::Sources.size() > 0)
-    {
-        for (size_t idxSource=0; idxSource<Configs::Sources.size(); idxSource++)
-        {
-            stuMigrationSource &Source = Configs::Sources[idxSource];
-
-            if (SourceName == Source.Name.value())
-            {
-                if (Source.DB.size() > 0)
-                {
-                    for (size_t idxDB=0; idxDB<Source.DB.size(); idxDB++)
-                    {
-                        stuMigrationDB &DB = Source.DB[idxDB];
-
-                        if (DBSchema == DB.Schema.value())
-                            return DB;
-                    }
-                }
-                break; //fail
-            }
-        }
-    }
-
-    throw exTargomanBase(QString("Definition for %1 not found in configuration").arg(_migrationFile.Source));
-}
-
-inline void MarkMigrationFile(const stuSourceMigrationFileInfo &_migrationFile)
+inline void MarkMigrationFile(const stuProjectMigrationFileInfo &_migrationFile)
 {
     if (_migrationFile.Scope == "db")
     {
-        stuMigrationDB DBConfig = FindDBConfigByMigrationFile(_migrationFile);
+        QString Schema = _migrationFile.Project.split('@')[0];
 
-        QStringList Parts = _migrationFile.Source.split('.');
-
-        clsDAC DAC(Parts[1]);
+        clsDAC DAC(_migrationFile.Project);
 
         QString Qry = QString(R"(
             INSERT INTO %1.%2
                SET migName=?
                  , migAppliedAt=NOW()
             )")
-            .arg(Parts[1])
+            .arg(Schema)
             .arg(Configs::GlobalHistoryTableName.value())
         ;
 
@@ -1021,16 +949,14 @@ inline void MarkMigrationFile(const stuSourceMigrationFileInfo &_migrationFile)
     }
 }
 
-inline void RunMigrationFile(const stuSourceMigrationFileInfo &_migrationFile, bool _run = true)
+inline void RunMigrationFile(const stuProjectMigrationFileInfo &_migrationFile, bool _run = true)
 {
     if (_migrationFile.Scope == "db")
     {
-        stuMigrationDB DBConfig = FindDBConfigByMigrationFile(_migrationFile);
-
         //1: run migration
         if (_run)
         {
-            clsDAC DAC(DBConfig.Schema.value());
+            clsDAC DAC(_migrationFile.Project);
 
             QFile File(_migrationFile.FullFileName);
 
@@ -1041,9 +967,11 @@ inline void RunMigrationFile(const stuSourceMigrationFileInfo &_migrationFile, b
             QString Qry = stream.readAll();
             if (Qry.isEmpty() == false)
             {
-                QStringList Parts = _migrationFile.Source.split('.');
+                QString Schema = _migrationFile.Project.split('@')[0];
+
+                QStringList Parts = _migrationFile.Project.split('.');
                 Qry = Qry
-                    .replace("{{Schema}}", DBConfig.Schema.value())
+                    .replace("{{Schema}}", Schema)
                     .replace("{{GlobalHistoryTableName}}", Configs::GlobalHistoryTableName.value())
                 ;
                 clsDACResult MainResult = DAC.execQuery("", Qry);

@@ -73,11 +73,13 @@ bool cmdCreateDB::run()
 
     QString FileName;
     QString FullFileName;
+    quint32 ProjectIndex;
 
     if (ChooseCreateMigrationProperties(
                 enuChooseCreateMigrationScope::db,
                 FileName,
-                FullFileName
+                FullFileName,
+                ProjectIndex
                 ) == false)
         return true;
 
