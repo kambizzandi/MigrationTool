@@ -103,7 +103,7 @@ tmplConfigurable<QString> Configs::ActiveRunningMode(
     "r",
     "MODE",
     "active-running-mode",
-    enuConfigSource::Arg | enuConfigSource::File
+    enuConfigSource::Arg
 );
 
 tmplConfigurableArray<stuProject> Configs::Projects(
