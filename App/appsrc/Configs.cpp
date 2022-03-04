@@ -29,11 +29,6 @@ namespace Targoman::Migrate {
 using namespace Targoman::Common;
 using namespace Targoman::Common::Configuration;
 
-//tmplConfigurable<QStringList> Configs::TestStringList(
-//    Configs::makeConfig("TestStringList"),
-//    "TestStringList"
-//);
-
 tmplConfigurable<enuAppCommand::Type> Configs::Command(
     Configs::makeConfig("Command"),
     R"(Application command:
@@ -60,10 +55,6 @@ tmplConfigurable<QString> Configs::MigrationsFolderName(
     "Relative folder name for creating migration files",
     "migrations",
     ReturnTrueCrossValidator(),
-//    Validators::tmplPathAccessValidator<
-//        TARGOMAN_PATH_ACCESS(enuPathAccess::Dir | enuPathAccess::Readable | enuPathAccess::Writeatble),
-//        false
-//    >,
     "",
     "PATH",
     "migrations-folder",
@@ -86,42 +77,35 @@ tmplConfigurable<QString> Configs::LocalHistoryFileName(
     "File name for storing local migration history",
     ".migrations",
     ReturnTrueCrossValidator(),
-//    Validators::tmplPathAccessValidator<
-//        TARGOMAN_PATH_ACCESS(enuPathAccess::File | enuPathAccess::Readable | enuPathAccess::Writeatble),
-//        false
-//    >,
     "",
     "FILE",
     "local-history-file",
     enuConfigSource::Arg | enuConfigSource::File
 );
 
-//tmplConfigurableArray<stuMigrationSource> Configs::Sources(
-//    Configs::makeConfig("Sources"),
-//    "Sources of migrations",
-//    1
-//);
-
 tmplConfigurableArray<stuDBServer> Configs::DBServers(
     Configs::makeConfig("DBServers"),
     "DB Servers",
     1
 );
+
 tmplConfigurableArray<stuRunningMode> Configs::RunningModes(
     Configs::makeConfig("RunningModes"),
     "Running modes",
     1
 );
-tmplConfigurable<QString> Configs::ActiveRunnigMode(
-    Configs::makeConfig("ActiveRunnigMode"),
-    "Active runnig mode",
+
+tmplConfigurable<QString> Configs::ActiveRunningMode(
+    Configs::makeConfig("ActiveRunningMode"),
+    "Active running mode",
     "",
     ReturnTrueCrossValidator(),
-    "",
-    "",
-    "active-runnig-mode",
+    "r",
+    "MODE",
+    "active-running-mode",
     enuConfigSource::Arg | enuConfigSource::File
 );
+
 tmplConfigurableArray<stuProject> Configs::Projects(
     Configs::makeConfig("Projects"),
     "Projects",
@@ -177,7 +161,7 @@ Configs::stuRunningParameters Configs::RunningParameters;
 void Configs::FillRunningParameters()
 {
     //1: find RunningMode:
-    if (Configs::ActiveRunnigMode.value().isEmpty())
+    if (Configs::ActiveRunningMode.value().isEmpty())
         throw exTargomanBase("Active Running Mode not defined");
 
     int RunningModeIndex = -1;
@@ -186,7 +170,7 @@ void Configs::FillRunningParameters()
     {
         stuRunningMode &RunningMode = Configs::RunningModes[idxRunningModes];
 
-        if (RunningMode.Name.value() == Configs::ActiveRunnigMode.value())
+        if (RunningMode.Name.value() == Configs::ActiveRunningMode.value())
         {
             RunningModeIndex = idxRunningModes;
             break;
@@ -196,7 +180,6 @@ void Configs::FillRunningParameters()
     if (RunningModeIndex < 0)
         throw exTargomanBase("Running Mode not found");
 
-//    Configs::RunningParameters.RunningModeName = Configs::RunningModes[Configs::RunningParameters.RunningModeIndex].Name.value();
     Configs::RunningParameters.RunningModeDBServers = Configs::RunningModes[RunningModeIndex].DBServers.value();
 
     if (Configs::RunningParameters.RunningModeDBServers.isEmpty() == false)
@@ -216,14 +199,14 @@ void Configs::FillRunningParameters()
                     {
                         stuProject &Project = Configs::Projects[idxProjects];
 
-                        qDebug() << "lookup" << DBServerName << "in" << Project.DBDestinations.value(); //.join("|");
+//                        qDebug() << "lookup" << DBServerName << "in" << Project.DBDestinations.value(); //.join("|");
 
                         if (Project.AllowDB.value()
                                 && (Project.DBDestinations.value().isEmpty() == false)
                                 && Project.DBDestinations.value().contains(DBServerName)
                             )
                         {
-                            qDebug() << "found";
+//                            qDebug() << "found";
 
                             //---------------------------
                             QStringList ProjectAllowedDBServers = Configs::RunningParameters.ProjectAllowedDBServers[Project.Name.value()];

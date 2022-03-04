@@ -36,16 +36,7 @@
 #include "Commands/cmdMark.h"
 #include "Commands/cmdCommit.h"
 
-//#include "libTargomanCommon/Configuration/ConfigManager.h"
-//#include "libTargomanDBM/clsDAC.h"
-
-//#include "Interfaces/API/intfPureModule.h"
-//#include <QCoreApplication>
-//#include <QPluginLoader>
-//#include "libTargomanDBM/clsDAC.h"
-
 using namespace Targoman::Common;
-//using namespace Targoman::DBManager;
 
 namespace Targoman::Migrate {
 
@@ -56,9 +47,6 @@ CommandManager::CommandManager(QObject *parent) : QObject(parent)
 
 void CommandManager::slotExecute()
 {
-//    QCoreApplication::exit(-1);
-//    return;
-
     try
     {
         Configs::FillRunningParameters();
@@ -154,25 +142,6 @@ void CommandManager::slotExecute()
         QCoreApplication::exit(-1);
         return;
     }
-
-//qDebug() << Configs::TestStringList.value();
-
-//QStringList aaa;
-//aaa.append("x");
-//aaa.append("y");
-//aaa.append("z");
-//qDebug() << aaa;
-
-//QVariant b = "m,n,o";
-//qDebug() << b;
-//qDebug() << b.canConvert(QVariant::StringList);
-//qDebug() << (b.userType() == QMetaType::QStringList);
-
-//QVariant c = QStringList({ "m", "n", "o" });
-//qDebug() << c;
-//qDebug() << c.canConvert(QVariant::StringList);
-//qDebug() << (c.userType() == QMetaType::QStringList);
-
 }
 
 } //namespace Targoman::Migrate

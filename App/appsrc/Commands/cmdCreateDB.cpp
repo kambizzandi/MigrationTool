@@ -28,8 +28,10 @@
 
 namespace Targoman::Migrate::Commands {
 
-cmdCreateDB::cmdCreateDB(QObject *parent) : QObject(parent)
-{}
+cmdCreateDB::cmdCreateDB()
+{
+
+}
 
 void cmdCreateDB::help()
 {
@@ -37,40 +39,6 @@ void cmdCreateDB::help()
 
 bool cmdCreateDB::run()
 {
-//    this->EditorProcess = new QProcess(this);
-
-//    QThread *thread = new QThread;
-
-//    qDebug() << __FUNCTION__ << __LINE__;
-//    EditorProcess.moveToThread(thread);
-
-//    EditorProcess.start(Configs::DefaultEditor.value(), QStringList() << FullFileName);
-
-//    qDebug() << __FUNCTION__ << __LINE__;
-//    this->connect(EditorProcess, SIGNAL(error(QProcess::ProcessError)), this, SLOT(error(QProcess::ProcessError)));
-//    this->connect(EditorProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(finished(int, QProcess::ExitStatus)));
-
-//    qDebug() << __FUNCTION__ << __LINE__;
-
-//    EditorProcess->start("xterm",
-//                         QStringList()
-//                         << "-e"
-//                         << "vim"
-//                         << "/home/user/Projects/test.txt"
-//                         );
-
-//    qDebug() << __FUNCTION__ << __LINE__;
-//    return false; //async
-
-
-//    qint64 pid;
-//    QProcess::startDetached("/usr/bin/vim",
-//                            QStringList() << "/home/user/Projects/test.txt",
-//                            {},
-//                            &pid);
-//    while (kill(pid, 0) == 0) { usleep(1); }
-//    return true;
-
     QString FileName;
     QString FullFileName;
     quint32 ProjectIndex;
@@ -114,19 +82,5 @@ bool cmdCreateDB::run()
 
     return true;
 }
-
-//void cmdCreateDB::error(QProcess::ProcessError error)
-//{
-//    qDebug() << __FUNCTION__;
-
-//    QCoreApplication::exit(0);
-//}
-
-//void cmdCreateDB::finished(int exitCode, QProcess::ExitStatus exitStatus)
-//{
-//    qDebug() << __FUNCTION__;
-
-//    QCoreApplication::exit(0);
-//}
 
 } // namespace Targoman::Migrate::Commands

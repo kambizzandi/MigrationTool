@@ -264,8 +264,19 @@ struct stuProjectMigrationFileInfo {
 //key: MigrationName
 typedef QMap<QString, stuProjectMigrationFileInfo> ProjectMigrationFileInfoMap;
 
+//inline void dumpHeaders(QStringList &_headers, QList<quint32> &_maxWidth)
+//{
+
+//}
 inline void dump(ProjectMigrationFileInfoMap &_var, bool _renderForAppliedHistoryItem = false)
 {
+//    QStringList Headers = QStringList()
+//        << "File Name"
+//        << "Scope"
+//        << "Project"
+//        << (_renderForAppliedHistoryItem ? "Applied At" : "Full File Name")
+//    ;
+
     int maxWidth_Name = QString("File Name").length(),
         maxWidth_Project = QString("Project").length();
     foreach (auto V, _var)

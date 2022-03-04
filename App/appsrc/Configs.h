@@ -28,116 +28,6 @@
 
 namespace Targoman::Migrate {
 
-//struct stuServers
-//{
-//    Targoman::Common::Configuration::tmplConfigurable<QString> Address;
-//    Targoman::Common::Configuration::tmplConfigurable<bool>    Active;
-
-//    stuServers(const QString &_basePath) :
-//        Address(_basePath + "Address",
-//                "kjkjkldfj sl s sm klsjflkdsl jaklfjkl jdsljfldskf klsjdklfjldskfjkldsl jdsklfjskl djlfjs friostjls jlskdfjklsdjf lksklfjdskl jkldsjfkljsfkljdsklfj dlfjldskfj dsklfjklj (sdfkdsfjkdsh jkdshfjdsf hsfjksh jks) skshfhdskjfhkd hfdsf;sd shfjhds jkfhjh fhsdjfh jksdhfsd fds j; dskjfklsdj"),
-//        Active(_basePath + "Active",
-//               "fdsfdf",
-//               true)
-//    { }
-
-//    void setFromVariant(const QVariant &_value)
-//    {
-//        this->Address.setFromVariant(_value.toMap().value("Address"));
-//        this->Active.setFromVariant(_value.toMap().value("Active"));
-//    }
-
-//    QVariant toVariant() const
-//    {
-//        return QVariantMap({
-//                               { "Address", this->Address.toVariant() },
-//                               { "Active", this->Active.toVariant() },
-//                           });
-//    }
-//};
-
-/*
-
-------------
--- dev:
-------------
-
-PWD: .../TargomanAPI
-
-./migrations/migration.conf
-0:  Name         = App
-    DBHosts      = 127.0.0.1,127.0.0.1
-    DBPorts      = 3306,3306
-    DBUserNames  = user_commonfuncs,user_i18n
-    DBPasswords  = psw1,psw2
-    DBSchemas    = CommonFuncs,I18N
-
-1:  Name         = Account
-    DBHosts      = 127.0.0.1
-    DBPorts      = 3306
-    DBUserNames  = user_account
-    DBPasswords  = psw1
-    DBSchemas    = Account
-
-./App/migrations/db/CommonFuncs/
-./App/migrations/db/I18N/
-./App/migrations/local/
-./App/migrations/local/.migrations (omitted by .gitignore)
-SYMLINK: ./migrations/App -> ./App/migrations
-
-./Modules/Account/migrations/db/AAA/
-./Modules/Account/migrations/local/
-./Modules/Account/migrations/local/.migrations (omitted by .gitignore)
-SYMLINK: ./migrations/Account -> ./Modules/Account/migrations
-
-------------
--- prod:
-------------
-
-PWD: /targoman
-
-./bin/
-    fasttext
-    targomanAPI
-./build/
-    ...
-./conf/
-    TODO
-    TextProcessor
-    api.conf
-    api.server.conf
-    invalidPass.tbl
-    test-run.conf
-    test.conf
-./include/
-    ...
-./lib/
-    ...
-./lib64/
-    ...
-./modules/
-    ...
-./run-targoman.sh
-./submodules/
-    ...
-./unitTest/
-    ...
-
--- migrations:
-
-./migrations/migration.conf
-
-./migrations/App/db/CommonFuncs/
-./migrations/App/db/I18N/
-./migrations/App/local/
-./migrations/App/local/.migrations
-
-./migrations/Account/db/AAA/
-./migrations/Account/local/
-./migrations/Account/local/.migrations
-
-*/
-
 struct Configs
 {
     static inline QString makeConfig(const QString& _name) { return "/App/" + _name; }
@@ -146,20 +36,16 @@ struct Configs
     static tmplConfigurable<QString>                    MigrationsFolderName;
     static tmplConfigurable<QString>                    GlobalHistoryTableName;
     static tmplConfigurable<QString>                    LocalHistoryFileName;
-//    static tmplConfigurable<QString>                    ApplyToAllSourceName;
-//    static tmplConfigurableArray<stuMigrationSource>    Sources;
 
     static tmplConfigurableArray<stuDBServer>           DBServers;
     static tmplConfigurableArray<stuRunningMode>        RunningModes;
-    static tmplConfigurable<QString>                    ActiveRunnigMode;
+    static tmplConfigurable<QString>                    ActiveRunningMode;
     static tmplConfigurableArray<stuProject>            Projects;
 
     static tmplConfigurable<bool>                       DBOnly;
     static tmplConfigurable<bool>                       LocalOnly;
 
     static tmplConfigurable<QString>                    DefaultEditor;
-
-//    static tmplConfigurable<QStringList>                TestStringList;
 
     //--------------------------
     struct stuRunningParameters

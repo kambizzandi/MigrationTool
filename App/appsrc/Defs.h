@@ -60,92 +60,9 @@ constexpr char REGEX_PATTERN_MIGRATION_LOG_FILENAME[] = "m[0-9]{8}_[0-9]{6}_[a-z
 TARGOMAN_ADD_EXCEPTION_HANDLER(exTargomanMigrate, Targoman::Common::exTargomanBase);
 #pragma clang diagnostic pop
 
-struct stuMigrationDB
-{
-    tmplConfigurable<QString>  Host;
-    tmplConfigurable<QString>  Port;
-    tmplConfigurable<QString>  UserName;
-    tmplConfigurable<QString>  Password;
-    tmplConfigurable<QString>  Schema;
-
-    stuMigrationDB(const QString &_basePath) :
-        Host(
-            _basePath + "Host",
-            "",
-            ""
-        ),
-        Port(
-            _basePath + "Port",
-            "",
-            ""
-        ),
-        UserName(
-            _basePath + "UserName",
-            "",
-            ""
-        ),
-        Password(
-            _basePath + "Password",
-            "",
-            ""
-        ),
-        Schema(
-            _basePath + "Schema",
-            "",
-            ""
-        )
-    {}
-
-    void setFromVariant(const QVariant &_value)
-    {
-        Q_UNUSED(_value);
-        qDebug() << __FUNCTION__ << __LINE__ << "setFromVariant" << _value;
-    }
-
-    QVariant toVariant() const
-    {
-        return "stuMigrationDB";
-    }
-};
-
-struct stuMigrationSource
-{
-    // ./migrations/{Name}/db/{DBSchema}/mYYYYMMDD_HHMMSS.sh
-    // ./migrations/{Name}/local/mYYYYMMDD_HHMMSS.sh
-    // ./migrations/{Name}/local/.migrations
-    tmplConfigurable<QString>               Name;
-    tmplConfigurableArray<stuMigrationDB>   DB;
-
-    stuMigrationSource(const QString &_basePath) :
-        Name(
-            _basePath + "Name",
-            "Name of the source. will be used in migrations path : ./migrations/{Name}/...",
-            ""
-        ),
-        DB(
-            _basePath + "DB",
-            "Database information of source",
-            1
-        )
-    {}
-
-    void setFromVariant(const QVariant &_value)
-    {
-        Q_UNUSED(_value);
-        qDebug() << __FUNCTION__ << __LINE__ << "setFromVariant" << _value;
-    }
-
-    QVariant toVariant() const
-    {
-        return "stuMigrationSource";
-    }
-};
-
-
-//////////////////////////////////////////////////////////////////////
-
 struct stuDBServer
 {
+    QString BasePath;
     tmplConfigurable<QString>  Name; //devdb1|devdb2|db1|db2|db3
     tmplConfigurable<QString>  Host;
     tmplConfigurable<QString>  Port;
@@ -153,6 +70,7 @@ struct stuDBServer
     tmplConfigurable<QString>  Password;
 
     stuDBServer(const QString &_basePath) :
+        BasePath(_basePath),
         Name(
             _basePath + "Name",
             "",
@@ -182,13 +100,32 @@ struct stuDBServer
 
     void setFromVariant(const QVariant &_value)
     {
-        Q_UNUSED(_value);
-        qDebug() << __FUNCTION__ << __LINE__ << "setFromVariant" << _value;
+        qDebug() << __FUNCTION__ << __LINE__ << _value;
+
+        QVariantMap map = _value.toMap();
+
+        this->Name.setFromVariant(map.value(BasePath + "Name"));
+        this->Host.setFromVariant(map.value(BasePath + "Host"));
+        this->Port.setFromVariant(map.value(BasePath + "Port"));
+        this->UserName.setFromVariant(map.value(BasePath + "UserName"));
+        this->Password.setFromVariant(map.value(BasePath + "Password"));
     }
 
     QVariant toVariant() const
     {
-        return "stuDBServers";
+        qDebug() << __FUNCTION__ << __LINE__;
+
+        QVariantMap map;
+
+        map.insert(BasePath + "Name", this->Name.toVariant());
+        map.insert(BasePath + "Host", this->Host.toVariant());
+        map.insert(BasePath + "Port", this->Port.toVariant());
+        map.insert(BasePath + "UserName", this->UserName.toVariant());
+        map.insert(BasePath + "Password", this->Password.toVariant());
+
+        qDebug() << map;
+
+        return map;
     }
 };
 
@@ -212,7 +149,7 @@ struct stuRunningMode
 
     void setFromVariant(const QVariant &_value)
     {
-        qDebug() << __FUNCTION__ << __LINE__ << "setFromVariant" << "BasePath:" << BasePath << "value:" << _value;
+        qDebug() << __FUNCTION__ << __LINE__ << _value;
 
         QVariantMap map = _value.toMap();
 
@@ -222,12 +159,14 @@ struct stuRunningMode
 
     QVariant toVariant() const
     {
-        qDebug() << __FUNCTION__ << __LINE__ << "toVariant" << "BasePath:" << BasePath;
+        qDebug() << __FUNCTION__ << __LINE__;
 
         QVariantMap map;
 
         map.insert(BasePath + "Name", this->Name.toVariant());
         map.insert(BasePath + "DBServers", this->DBServers.toVariant().toString().split(','));
+
+        qDebug() << map;
 
         return map;
     }
@@ -235,9 +174,7 @@ struct stuRunningMode
 
 struct stuProject
 {
-    // ./migrations/{Name}/db/mYYYYMMDD_HHMMSS.sh
-    // ./migrations/{Name}/local/mYYYYMMDD_HHMMSS.sh
-    // ./migrations/{Name}/local/.migrations
+    QString BasePath;
     tmplConfigurable<QString>       Name;
     tmplConfigurable<bool>          AllowDB;
     tmplConfigurable<bool>          AllowLocal;
@@ -245,6 +182,7 @@ struct stuProject
     tmplConfigurable<QStringList>   DBDestinations; //devdb1,db2
 
     stuProject(const QString &_basePath) :
+        BasePath(_basePath),
         Name(
             _basePath + "Name",
             "Name of the project. will be used in migrations path : ./migrations/{Name}/...",
@@ -273,13 +211,32 @@ struct stuProject
 
     void setFromVariant(const QVariant &_value)
     {
-        Q_UNUSED(_value);
-        qDebug() << __FUNCTION__ << __LINE__ << "setFromVariant" << _value;
+        qDebug() << __FUNCTION__ << __LINE__ << _value;
+
+        QVariantMap map = _value.toMap();
+
+        this->Name.setFromVariant(map.value(BasePath + "Name"));
+        this->AllowDB.setFromVariant(map.value(BasePath + "AllowDB"));
+        this->AllowLocal.setFromVariant(map.value(BasePath + "AllowLocal"));
+        this->ApplyToAllProjects.setFromVariant(map.value(BasePath + "ApplyToAllProjects"));
+        this->DBDestinations.setFromVariant(map.value(BasePath + "DBDestinations"));
     }
 
     QVariant toVariant() const
     {
-        return "stuProjects";
+        qDebug() << __FUNCTION__ << __LINE__;
+
+        QVariantMap map;
+
+        map.insert(BasePath + "Name", this->Name.toVariant());
+        map.insert(BasePath + "AllowDB", this->AllowDB.toVariant());
+        map.insert(BasePath + "AllowLocal", this->AllowLocal.toVariant());
+        map.insert(BasePath + "ApplyToAllProjects", this->ApplyToAllProjects.toVariant());
+        map.insert(BasePath + "DBDestinations", this->DBDestinations.toVariant().toString().split(','));
+
+        qDebug() << map;
+
+        return map;
     }
 };
 
@@ -308,82 +265,15 @@ inline QTextStream& qStdIn()
 
 } // namespace Targoman::Migrate
 
-template <> inline void Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuMigrationDB>::setFromVariant(const QVariant& _value)
-{
-    Q_UNUSED(_value);
-    qDebug() << __FUNCTION__ << __LINE__ << "setFromVariant" << _value;
-}
-template <> inline QVariant Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuMigrationDB>::toVariant() const
-{
-    return "tmplConfigurableArray<Targoman::Migrate::stuMigrationDB>";
-}
-
-template <> inline void Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuMigrationSource>::setFromVariant(const QVariant& _value)
-{
-    Q_UNUSED(_value);
-    qDebug() << __FUNCTION__ << __LINE__ << "setFromVariant" << _value;
-
-//    QJsonDocument doc;
-//    doc.fromJson(_value.toString().toLatin1());
-
-//    this->Items.clear();
-
-//    if (doc.isEmpty())
-//        return;
-
-//    QJsonArray arr = doc.array();
-//    this->Items.reserve(arr.count());
-
-//    int idx = 0;
-//    foreach (auto Value, arr)
-//    {
-//        this->Items[idx++].setFromVariant(Value);
-//    }
-}
-template <> inline QVariant Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuMigrationSource>::toVariant() const
-{
-    return "tmplConfigurableArray<Targoman::Migrate::stuMigrationSource>";
-
-//    QVariantList Values;
-
-//    foreach(auto Item, this->Items)
-//    {
-//        Values.append(Item.toVariant());
-//    }
-
-//    QJsonArray arr;
-//    arr.fromVariantList(Values);
-
-//    QJsonDocument doc;
-//    doc.setArray(arr);
-
-//    QVariant v = doc.toJson();
-//    auto s = v.toString();
-//    auto s1 = s.toUtf8();
-//    auto s2 = s1.constData();
-
-//    return doc.toJson();
-}
-
 template <> inline void Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuDBServer>::setFromVariant(const QVariant& _value)
 {
     Q_UNUSED(_value);
     qDebug() << __FUNCTION__ << __LINE__ << "setFromVariant" << _value;
+    ///TODO: implement this
 }
 template <> inline QVariant Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuDBServer>::toVariant() const
 {
-    return "tmplConfigurableArray<Targoman::Migrate::stuDBServers>";
-}
-template <> inline void Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuRunningMode>::setFromVariant(const QVariant& _value)
-{
-    Q_UNUSED(_value);
-    qDebug() << __FUNCTION__ << __LINE__ << "[] setFromVariant" << _value;
-}
-template <> inline QVariant Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuRunningMode>::toVariant() const
-{
-    qDebug() << __FUNCTION__ << __LINE__ << "[] toVariant";
-
-//    return "tmplConfigurableArray<Targoman::Migrate::stuRunningModes>";
+    qDebug() << __FUNCTION__ << "[]" << __LINE__;
 
     QVariantList ret;
 
@@ -392,16 +282,51 @@ template <> inline QVariant Targoman::Common::Configuration::tmplConfigurableArr
         ret.append(Item.toVariant());
     }
 
+    qDebug() << "[]" << ret;
+
+    return ret;
+}
+template <> inline void Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuRunningMode>::setFromVariant(const QVariant& _value)
+{
+    Q_UNUSED(_value);
+    qDebug() << __FUNCTION__ << __LINE__ << "[] setFromVariant" << _value;
+    ///TODO: implement this
+}
+template <> inline QVariant Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuRunningMode>::toVariant() const
+{
+    qDebug() << __FUNCTION__ << "[]" << __LINE__;
+
+    QVariantList ret;
+
+    foreach(auto Item, this->Items)
+    {
+        ret.append(Item.toVariant());
+    }
+
+    qDebug() << "[]" << ret;
+
     return ret;
 }
 template <> inline void Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuProject>::setFromVariant(const QVariant& _value)
 {
     Q_UNUSED(_value);
     qDebug() << __FUNCTION__ << __LINE__ << "setFromVariant" << _value;
+    ///TODO: implement this
 }
 template <> inline QVariant Targoman::Common::Configuration::tmplConfigurableArray<Targoman::Migrate::stuProject>::toVariant() const
 {
-    return "tmplConfigurableArray<Targoman::Migrate::stuProjects>";
+    qDebug() << __FUNCTION__ << "[]" << __LINE__;
+
+    QVariantList ret;
+
+    foreach(auto Item, this->Items)
+    {
+        ret.append(Item.toVariant());
+    }
+
+    qDebug() << "[]" << ret;
+
+    return ret;
 }
 
 #endif // TARGOMAN_MIGRATE_DEFS_H
