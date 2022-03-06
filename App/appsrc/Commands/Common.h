@@ -73,11 +73,22 @@ inline bool ChooseCreateMigrationProperties(
         {}
     };
 
-    QList<stuProjectInfo> Projects;
+//    qDebug() << "ProjectAllowedDBServers.keys"
+//             << Configs::RunningParameters.ProjectAllowedDBServers.keys();
 
+    QList<stuProjectInfo> Projects;
     for (size_t idxProject=0; idxProject<Configs::Projects.size(); idxProject++)
     {
         stuProject &Project = Configs::Projects[idxProject];
+
+//        qDebug() << "checking project"
+//                 << idxProject
+//                 << Project.Name.value()
+//                 << Project.AllowDB.value()
+//                 << Project.AllowLocal.value()
+//                 << Project.ApplyToAllProjects.value()
+//                 << Project.DBDestinations.value()
+//        ;
 
         QString Name = Project.Name.value();
 
