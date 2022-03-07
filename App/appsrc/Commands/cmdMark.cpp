@@ -66,63 +66,70 @@ bool cmdMark::run()
 
     qint32 RemainCount = 0;
 
-    while (true)
+    if (Configs::All.value())
     {
-        qStdout()
-                << "Which migrations do you want to mark?"
-                << " "
-                << reverse("[") << reverse(bold("c")) << reverse("ancel]")
-                << " "
-                ;
-
-        if (MigrationFiles.count() == 1)
+        RemainCount = MigrationFiles.count();
+    }
+    else
+    {
+        while (true)
         {
             qStdout()
-                    << reverse("[") << reverse(bold("a")) << reverse("ll]")
-                    << reverse(" = ")
-                    << reverse("[") << reverse(bold("1")) << reverse("]")
-                    ;
-        }
-        else
-        {
-            qStdout()
-                    << reverse("[") << reverse(bold("a")) << reverse("ll]")
+                    << "Which migrations do you want to mark?"
                     << " "
-                    << reverse("1 to [") << reverse(bold("1")) << reverse("]")
-                    << reverse(" ... ")
-                    << reverse("[") << reverse(bold(QString::number(MigrationFiles.count()))) << reverse("]")
+                    << reverse("[") << reverse(bold("c")) << reverse("ancel]")
+                    << " "
                     ;
-        }
-        qStdout() << " ";
-        qStdout().flush();
 
-        QString value = qStdIn().readLine().trimmed();
-
-        if (value.isEmpty())
-            continue;
-
-        if (value == "c")
-            return true;
-
-        if (value == "a")
-        {
-            RemainCount = MigrationFiles.count();
-            break;
-        }
-        else
-        {
-            bool ok = false;
-            RemainCount = value.toInt(&ok);
-
-            if (ok)
+            if (MigrationFiles.count() == 1)
             {
-                if ((RemainCount <= 0) || (RemainCount > MigrationFiles.count()))
-                    qStdout() << "Input must be between 1 and " << MigrationFiles.count() << endl;
-                else
-                    break;
+                qStdout()
+                        << reverse("[") << reverse(bold("a")) << reverse("ll]")
+                        << reverse(" = ")
+                        << reverse("[") << reverse(bold("1")) << reverse("]")
+                        ;
             }
             else
-                qStdout() << "Invalid input " << value << endl;
+            {
+                qStdout()
+                        << reverse("[") << reverse(bold("a")) << reverse("ll]")
+                        << " "
+                        << reverse("1 to [") << reverse(bold("1")) << reverse("]")
+                        << reverse(" ... ")
+                        << reverse("[") << reverse(bold(QString::number(MigrationFiles.count()))) << reverse("]")
+                        ;
+            }
+            qStdout() << " ";
+            qStdout().flush();
+
+            QString value = qStdIn().readLine().trimmed();
+
+            if (value.isEmpty())
+                continue;
+
+            if (value == "c")
+                return true;
+
+            if (value == "a")
+            {
+                RemainCount = MigrationFiles.count();
+                break;
+            }
+            else
+            {
+                bool ok = false;
+                RemainCount = value.toInt(&ok);
+
+                if (ok)
+                {
+                    if ((RemainCount <= 0) || (RemainCount > MigrationFiles.count()))
+                        qStdout() << "Input must be between 1 and " << MigrationFiles.count() << endl;
+                    else
+                        break;
+                }
+                else
+                    qStdout() << "Invalid input " << value << endl;
+            }
         }
     }
 

@@ -145,6 +145,17 @@ tmplConfigurable<bool> Configs::LocalOnly(
     enuConfigSource::Arg
 );
 
+tmplConfigurable<bool> Configs::All(
+    Configs::makeConfig("All"),
+    "Turn All switch to on for commit and mark commands",
+    false,
+    ReturnTrueCrossValidator(),
+    "",
+    "",
+    "all",
+    enuConfigSource::Arg
+);
+
 tmplConfigurable<QString> Configs::DefaultEditor(
     Configs::makeConfig("DefaultEditor"),
     "Default text editor",
