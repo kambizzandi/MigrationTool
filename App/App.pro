@@ -42,8 +42,5 @@ SOURCES += \
 OTHER_FILES +=
 
 # +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-#
-#LIBS += -lXXX
 
-DISTFILES += \
-    conf/test.conf \
-    conf/api.server.conf \
+include($$QBUILD_PATH/base/install.pri)
