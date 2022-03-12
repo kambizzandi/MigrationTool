@@ -18,7 +18,7 @@ OTHER_FILES += \
     LICENSE \
     migrations/TargomanMigrate/db/* \
     migrations/TargomanMigrate/local/* \
-    migrations/TargomanMigrate/.migrations \
+    migrations/TargomanMigrate/local/.migrations \
     conf/* \
     targomanMigrate-bash-completion.bash \
     install-bash-completion.sh \

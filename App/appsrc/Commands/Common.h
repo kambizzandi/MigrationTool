@@ -224,8 +224,9 @@ inline bool ChooseCreateMigrationProperties(
     _projectIndex = Projects[ProjectID - 1].Index;
 //    stuProject &SelectedProject = Configs::Projects[_projectIndex];
 
-    _fileName = QString("m%1_%2.%3")
+    _fileName = QString("m%1_%2_%3.%4")
                 .arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss"))
+                .arg(Projects[ProjectID - 1].Name)
                 .arg(MigrationLabel)
                 .arg(_chooseScope == enuChooseCreateMigrationScope::local ? "sh" : "sql")
                 ;
