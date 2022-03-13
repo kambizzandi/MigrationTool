@@ -83,6 +83,28 @@ tmplConfigurable<QString> Configs::LocalHistoryFileName(
     enuConfigSource::Arg | enuConfigSource::File
 );
 
+tmplConfigurable<QString> Configs::DBPrefix(
+    Configs::makeConfig("DBPrefix"),
+    "Prefix to prepend to all database names",
+    "",
+    ReturnTrueCrossValidator(),
+    "",
+    "PREFIX",
+    "dbprefix",
+    enuConfigSource::Arg | enuConfigSource::File
+);
+
+tmplConfigurable<QString> Configs::NewDBCollation(
+    Configs::makeConfig("NewDBCollation"),
+    "New DB collation",
+    "utf8mb4_general_ci",
+    ReturnTrueCrossValidator(),
+    "",
+    "COLLATION",
+    "new-db-collation",
+    enuConfigSource::Arg | enuConfigSource::File
+);
+
 tmplConfigurableArray<stuDBServer> Configs::DBServers(
     Configs::makeConfig("DBServers"),
     "DB Servers",
@@ -205,6 +227,8 @@ void Configs::FillRunningParameters()
             {
                 if (DBServerName == DBServer.Name.value())
                 {
+                    bool DBServerHasProjects = false;
+
                     //projects
                     for (size_t idxProjects=0; idxProjects<Configs::Projects.size(); idxProjects++)
                     {
@@ -218,6 +242,7 @@ void Configs::FillRunningParameters()
                             )
                         {
 //                            qDebug() << "found";
+                            DBServerHasProjects = true;
 
                             //---------------------------
                             QStringList ProjectAllowedDBServers = Configs::RunningParameters.ProjectAllowedDBServers[Project.Name.value()];
@@ -225,16 +250,32 @@ void Configs::FillRunningParameters()
                             Configs::RunningParameters.ProjectAllowedDBServers[Project.Name.value()] = ProjectAllowedDBServers;
 
                             //---------------------------
-                            QString ConnStringWithSchema = QString("HOST=%1;PORT=%2;USER=%3;PASSWORD=%4;SCHEMA=%5;")
+                            QString ConnStringWithSchema = QString("HOST=%1;PORT=%2;USER=%3;PASSWORD=%4;SCHEMA=%5%6;")
                                                            .arg(DBServer.Host.value())
                                                            .arg(DBServer.Port.value())
                                                            .arg(DBServer.UserName.value())
                                                            .arg(DBServer.Password.value())
+                                                           .arg(Configs::DBPrefix.value())
                                                            .arg(Project.Name.value());
 
-                            QString ProjectDestinationKey = QString("%1@%2").arg(Project.Name.value()).arg(DBServerName);
+                            QString ProjectDestinationKey = QString("%1%2@%3")
+                                                            .arg(Configs::DBPrefix.value())
+                                                            .arg(Project.Name.value())
+                                                            .arg(DBServerName);
+
                             Configs::RunningParameters.ProjectDBConnectionStrings[ProjectDestinationKey] = ConnStringWithSchema;
                         }
+                    }
+
+                    //add default connection string for dbserver
+                    if (DBServerHasProjects)
+                    {
+                        Configs::RunningParameters.DBServersDefaultConnectionString[DBServerName] = QString("HOST=%1;PORT=%2;USER=%3;PASSWORD=%4;")
+                                                                                              .arg(DBServer.Host.value())
+                                                                                              .arg(DBServer.Port.value())
+                                                                                              .arg(DBServer.UserName.value())
+                                                                                              .arg(DBServer.Password.value())
+                                                                                              ;
                     }
 
                     break;

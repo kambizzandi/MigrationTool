@@ -36,6 +36,8 @@ struct Configs
     static tmplConfigurable<QString>                    MigrationsFolderName;
     static tmplConfigurable<QString>                    GlobalHistoryTableName;
     static tmplConfigurable<QString>                    LocalHistoryFileName;
+    static tmplConfigurable<QString>                    DBPrefix;
+    static tmplConfigurable<QString>                    NewDBCollation;
 
     static tmplConfigurableArray<stuDBServer>           DBServers;
     static tmplConfigurableArray<stuRunningMode>        RunningModes;
@@ -59,8 +61,14 @@ struct Configs
         //key: Project.Name
         QMap<QString, QStringList> ProjectAllowedDBServers;
 
+        //key: DBServer.Name
+        QMap<QString, QString> DBServersDefaultConnectionString;
+
         //key: Project.Name @ DBServer.Name
         QMap<QString, QString> ProjectDBConnectionStrings;
+
+        //key: Project.Name @ DBServer.Name
+        QMap<QString, QString> NonExistsProjectDBConnectionStrings;
 
         stuRunningParameters() :
 //            RunningModeIndex(-1),
