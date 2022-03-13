@@ -116,6 +116,22 @@ void CommandManager::slotExecute()
         //---------------------------------
         if (Command->needDB())
         {
+            //register default conn string
+            for (QMap<QString, QString>::const_iterator it = Configs::RunningParameters.DBServersDefaultConnectionString.constBegin();
+                 it != Configs::RunningParameters.DBServersDefaultConnectionString.constEnd();
+                 it++)
+            {
+                QString DBServerName = it.key();
+                QString ConnStringWith = it.value();
+
+                qDebug() << "*addDBEngine" << DBServerName;
+                clsDAC::addDBEngine(enuDBEngines::MySQL, DBServerName);
+
+                qDebug() << "*setConnectionString" << DBServerName << "=" << ConnStringWith;
+                clsDAC::setConnectionString(ConnStringWith, DBServerName);
+            }
+
+            //register project's conn string
             for (QMap<QString, QString>::const_iterator it = Configs::RunningParameters.ProjectDBConnectionStrings.constBegin();
                  it != Configs::RunningParameters.ProjectDBConnectionStrings.constEnd();
                  it++)
@@ -126,8 +142,30 @@ void CommandManager::slotExecute()
                 qDebug() << "addDBEngine" << ProjectDestinationKey;
                 clsDAC::addDBEngine(enuDBEngines::MySQL, ProjectDestinationKey);
 
-                qDebug() << "setConnectionString" << ProjectDestinationKey << "=" << ConnStringWithSchema;
-                clsDAC::setConnectionString(ConnStringWithSchema, ProjectDestinationKey);
+                //check if db exists
+                auto Parts = ProjectDestinationKey.split('@');
+                QString SchemaName = Parts[0];
+                QString DBServerName = Parts[1];
+
+                //1: check if db exists
+                clsDAC DAC1(DBServerName);
+                QString Qry = R"(
+                    SELECT *
+                      FROM information_schema.SCHEMATA
+                     WHERE SCHEMA_NAME=?
+                )";
+                clsDACResult ResultTable = DAC1.execQuery("", Qry, { SchemaName });
+
+                if (ResultTable.toJson(true).object().isEmpty())
+                {
+                    qDebug() << "database" << SchemaName << "not exists in" << DBServerName;
+                    Configs::RunningParameters.NonExistsProjectDBConnectionStrings[ProjectDestinationKey] = ConnStringWithSchema;
+                }
+                else
+                {
+                    qDebug() << "setConnectionString" << ProjectDestinationKey << "=" << ConnStringWithSchema;
+                    clsDAC::setConnectionString(ConnStringWithSchema, ProjectDestinationKey);
+                }
             }
         }
 

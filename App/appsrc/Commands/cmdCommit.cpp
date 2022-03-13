@@ -141,6 +141,7 @@ bool cmdCommit::run()
                 << " ["
                 << MigrationFile.Scope
                 << "/"
+                << (MigrationFile.Scope == "local" ? "" : Configs::DBPrefix.value())
                 << MigrationFile.Project
                 << "]"
 //                << MigrationFile.FullFileName
