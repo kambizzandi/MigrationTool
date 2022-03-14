@@ -258,8 +258,8 @@ void Configs::FillRunningParameters()
                                                            .arg(Configs::DBPrefix.value())
                                                            .arg(Project.Name.value());
 
-                            QString ProjectDestinationKey = QString("%1%2@%3")
-                                                            .arg(Configs::DBPrefix.value())
+                            QString ProjectDestinationKey = QString("%1@%2")
+//                                                            .arg(Configs::DBPrefix.value())
                                                             .arg(Project.Name.value())
                                                             .arg(DBServerName);
 
