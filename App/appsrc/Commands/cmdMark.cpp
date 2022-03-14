@@ -154,7 +154,8 @@ bool cmdMark::run()
                 << " : "
                 ;
 
-        RunMigrationFile(MigrationFile, false);
+        //commit instead of mark for CREATE_DB_MIGRATION_HISTORY_FILE_NAME
+        RunMigrationFile(MigrationFile, MigrationFile.FileName == CREATE_DB_MIGRATION_HISTORY_FILE_NAME);
 
         qStdout() << "Ok" << endl;
 
