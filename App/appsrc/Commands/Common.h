@@ -78,6 +78,12 @@ inline bool ChooseCreateMigrationProperties(
     {
         stuProject &Project = Configs::Projects[idxProject];
 
+        if ((Configs::Project.value().isEmpty() == false)
+                && (Project.Name.value() != Configs::Project.value())
+                && (Project.ApplyToAllProjects.value() == false)
+            )
+            continue;
+
         QString Name = Project.Name.value();
 
         if (_chooseScope == enuChooseCreateMigrationScope::local)
@@ -550,6 +556,12 @@ inline void ExtractMigrationFiles(ProjectMigrationFileInfoMap &_migrationFiles)
     for (size_t idxProject=0; idxProject<Configs::Projects.size(); idxProject++)
     {
         stuProject &Project = Configs::Projects[idxProject];
+
+        if ((Configs::Project.value().isEmpty() == false)
+                && (Project.Name.value() != Configs::Project.value())
+                && (Project.ApplyToAllProjects.value() == false)
+            )
+            continue;
 
         QStringList LookupScopes;
 

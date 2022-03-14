@@ -145,6 +145,17 @@ tmplConfigurableArray<stuProject> Configs::Projects(
 //    enuConfigSource::Arg | enuConfigSource::File
 //);
 
+tmplConfigurable<QString> Configs::Project(
+    Configs::makeConfig("Project"),
+    "Project to focus",
+    "",
+    ReturnTrueCrossValidator(),
+    "",
+    "PROJECT",
+    "project",
+    enuConfigSource::Arg | enuConfigSource::File
+);
+
 tmplConfigurable<bool> Configs::DBOnly(
     Configs::makeConfig("DBOnly"),
     "Only db migrations",
@@ -233,6 +244,12 @@ void Configs::FillRunningParameters()
                     for (size_t idxProjects=0; idxProjects<Configs::Projects.size(); idxProjects++)
                     {
                         stuProject &Project = Configs::Projects[idxProjects];
+
+                        if ((Configs::Project.value().isEmpty() == false)
+                                && (Project.Name.value() != Configs::Project.value())
+                                && (Project.ApplyToAllProjects.value() == false)
+                            )
+                            continue;
 
 //                        qDebug() << "lookup" << DBServerName << "in" << Project.DBDestinations.value(); //.join("|");
 
