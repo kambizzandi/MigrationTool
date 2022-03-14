@@ -154,11 +154,13 @@ void CommandManager::slotExecute()
                       FROM information_schema.SCHEMATA
                      WHERE SCHEMA_NAME=?
                 )";
-                clsDACResult ResultTable = DAC1.execQuery("", Qry, { SchemaName });
+                clsDACResult ResultTable = DAC1.execQuery("", Qry, {
+                                                              Configs::DBPrefix.value() + SchemaName
+                                                          });
 
                 if (ResultTable.toJson(true).object().isEmpty())
                 {
-                    qDebug() << "database" << SchemaName << "not exists in" << DBServerName;
+                    qDebug() << "database" << Configs::DBPrefix.value() + SchemaName << "not exists in" << DBServerName;
                     Configs::RunningParameters.NonExistsProjectDBConnectionStrings[ProjectDestinationKey] = ConnStringWithSchema;
                 }
                 else

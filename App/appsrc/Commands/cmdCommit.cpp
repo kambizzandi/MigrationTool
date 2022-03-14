@@ -54,7 +54,7 @@ bool cmdCommit::run()
         return true;
     }
 
-//    qDebug() << "** Unapplied MigrationFiles ******************************";
+    qDebug() << "** Unapplied MigrationFiles ******************************";
     dump(MigrationFiles);
     qInfo() << "";
 
