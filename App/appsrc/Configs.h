@@ -44,6 +44,7 @@ struct Configs
     static tmplConfigurable<QString>                    ActiveRunningMode;
     static tmplConfigurableArray<stuProject>            Projects;
 
+    static tmplConfigurable<QString>                    Project;
     static tmplConfigurable<bool>                       DBOnly;
     static tmplConfigurable<bool>                       LocalOnly;
     static tmplConfigurable<bool>                       All;
