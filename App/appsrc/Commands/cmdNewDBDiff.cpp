@@ -21,64 +21,71 @@
  * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
-#include "cmdCreateLocal.h"
+#include "cmdNewDBDiff.h"
 #include "../Configs.h"
-#include <signal.h>
-#include <unistd.h>
 
 namespace Targoman::Migrate::Commands {
 
-cmdCreateLocal::cmdCreateLocal()
+cmdNewDBDiff::cmdNewDBDiff()
 {
 }
 
-void cmdCreateLocal::help()
+void cmdNewDBDiff::help()
 {
 }
 
-bool cmdCreateLocal::run()
+bool cmdNewDBDiff::run()
 {
     QString FileName;
     QString FullFileName;
     quint32 ProjectIndex;
 
     if (ChooseCreateMigrationProperties(
-                enuChooseCreateMigrationScope::local,
+                enuChooseCreateMigrationScope::dbdiff,
                 FileName,
                 FullFileName,
                 ProjectIndex
-                ) == false)
+            ) == false)
         return true;
+
+//    qDebug() << "===================="
+//             << SourceIndex
+//             << DBIndex
+//             ;
+
+    stuProject &SelectedProject = Configs::Projects[ProjectIndex];
+
+    qDebug() << SelectedProject.Name.value();
+
+
+
+
+//    libTargomanCompare
+
 
     qInfo().noquote().nospace() << "Creating new migration file: " << FullFileName;
 
-    QFile File(FullFileName);
-    if (File.open(QFile::WriteOnly | QFile::Text) == false)
-    {
-        qInfo() << "Could not create new migration file.";
-        return true;
-    }
 
-    QTextStream writer(&File);
-    writer
-        << "#!/bin/bash"
-        << endl
-        << "# Migration File: "
-        << FileName
-        << endl
-        << endl
-        ;
-    File.close();
 
-    qInfo().noquote() << "Empty migration file created successfully.";
+//    QFile File(FullFileName);
 
-    qint64 PID;
-    if (QProcess::startDetached(Configs::DefaultEditor.value(),
-                                QStringList() << FullFileName,
-                                {},
-                                &PID) == false)
-        throw exTargomanBase("Execution of default editor failed");
-    while (kill(PID, 0) == 0) { usleep(1); }
+//    if (File.open(QFile::WriteOnly | QFile::Text) == false)
+//    {
+//        qInfo() << "Could not create new migration file.";
+//        return true;
+//    }
+
+//    QTextStream writer(&File);
+//    writer
+//        << "/* Migration File: "
+//        << FileName
+//        << " */"
+//        << endl
+//        << endl
+//        ;
+//    File.close();
+
+//    qInfo().noquote() << "Migration file by diff created successfully.";
 
     return true;
 }

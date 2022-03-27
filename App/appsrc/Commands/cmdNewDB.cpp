@@ -21,71 +21,64 @@
  * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
-#include "cmdCreateDBDiff.h"
+#include "cmdNewDB.h"
 #include "../Configs.h"
+#include <signal.h>
+#include <unistd.h>
 
 namespace Targoman::Migrate::Commands {
 
-cmdCreateDBDiff::cmdCreateDBDiff()
+cmdNewDB::cmdNewDB()
+{
+
+}
+
+void cmdNewDB::help()
 {
 }
 
-void cmdCreateDBDiff::help()
-{
-}
-
-bool cmdCreateDBDiff::run()
+bool cmdNewDB::run()
 {
     QString FileName;
     QString FullFileName;
     quint32 ProjectIndex;
 
     if (ChooseCreateMigrationProperties(
-                enuChooseCreateMigrationScope::dbdiff,
+                enuChooseCreateMigrationScope::db,
                 FileName,
                 FullFileName,
                 ProjectIndex
-            ) == false)
+                ) == false)
         return true;
-
-//    qDebug() << "===================="
-//             << SourceIndex
-//             << DBIndex
-//             ;
-
-    stuProject &SelectedProject = Configs::Projects[ProjectIndex];
-
-    qDebug() << SelectedProject.Name.value();
-
-
-
-
-//    libTargomanCompare
-
 
     qInfo().noquote().nospace() << "Creating new migration file: " << FullFileName;
 
+    QFile File(FullFileName);
+    if (File.open(QFile::WriteOnly | QFile::Text) == false)
+    {
+        qInfo() << "Could not create new migration file.";
+        return true;
+    }
 
+    QTextStream writer(&File);
+    writer
+        << "/* Migration File: "
+        << FileName
+        << " */"
+        << endl
+        << endl
+        ;
+    File.close();
 
-//    QFile File(FullFileName);
+    qInfo().noquote() << "Empty migration file created successfully.";
 
-//    if (File.open(QFile::WriteOnly | QFile::Text) == false)
-//    {
-//        qInfo() << "Could not create new migration file.";
-//        return true;
-//    }
-
-//    QTextStream writer(&File);
-//    writer
-//        << "/* Migration File: "
-//        << FileName
-//        << " */"
-//        << endl
-//        << endl
-//        ;
-//    File.close();
-
-//    qInfo().noquote() << "Migration file by diff created successfully.";
+    qint64 PID;
+    if (QProcess::startDetached(Configs::DefaultEditor.value(),
+                                QStringList() << FullFileName,
+                                {},
+                                &PID) == false)
+        throw exTargomanBase("Execution of default editor failed");
+    while (kill(PID, 0) == 0) { usleep(1); }
 
     return true;
 }

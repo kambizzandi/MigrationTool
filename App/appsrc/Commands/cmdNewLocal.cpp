@@ -21,30 +21,29 @@
  * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
-#include "cmdCreateDB.h"
+#include "cmdNewLocal.h"
 #include "../Configs.h"
 #include <signal.h>
 #include <unistd.h>
 
 namespace Targoman::Migrate::Commands {
 
-cmdCreateDB::cmdCreateDB()
-{
-
-}
-
-void cmdCreateDB::help()
+cmdNewLocal::cmdNewLocal()
 {
 }
 
-bool cmdCreateDB::run()
+void cmdNewLocal::help()
+{
+}
+
+bool cmdNewLocal::run()
 {
     QString FileName;
     QString FullFileName;
     quint32 ProjectIndex;
 
     if (ChooseCreateMigrationProperties(
-                enuChooseCreateMigrationScope::db,
+                enuChooseCreateMigrationScope::local,
                 FileName,
                 FullFileName,
                 ProjectIndex
@@ -62,9 +61,10 @@ bool cmdCreateDB::run()
 
     QTextStream writer(&File);
     writer
-        << "/* Migration File: "
+        << "#!/bin/bash"
+        << endl
+        << "# Migration File: "
         << FileName
-        << " */"
         << endl
         << endl
         ;
