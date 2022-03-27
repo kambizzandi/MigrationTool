@@ -28,9 +28,9 @@
 #include "CommandManager.h"
 #include "Commands/intfCommand.h"
 #include "Commands/cmdShowConf.h"
-#include "Commands/cmdCreateDB.h"
-#include "Commands/cmdCreateDBDiff.h"
-#include "Commands/cmdCreateLocal.h"
+#include "Commands/cmdNewDB.h"
+#include "Commands/cmdNewDBDiff.h"
+#include "Commands/cmdNewLocal.h"
 #include "Commands/cmdHistory.h"
 #include "Commands/cmdList.h"
 #include "Commands/cmdMark.h"
@@ -59,16 +59,16 @@ void CommandManager::slotExecute()
                 Command = cmdShowConf::instancePtr();
                 break;
 
-            case enuAppCommand::createdb:
-                Command = cmdCreateDB::instancePtr();
+            case enuAppCommand::newdb:
+                Command = cmdNewDB::instancePtr();
                 break;
 
-            case enuAppCommand::createdbdiff:
-                Command = cmdCreateDBDiff::instancePtr();
+            case enuAppCommand::newdbdiff:
+                Command = cmdNewDBDiff::instancePtr();
                 break;
 
-            case enuAppCommand::createlocal:
-                Command = cmdCreateLocal::instancePtr();
+            case enuAppCommand::newlocal:
+                Command = cmdNewLocal::instancePtr();
                 break;
 
             case enuAppCommand::history:

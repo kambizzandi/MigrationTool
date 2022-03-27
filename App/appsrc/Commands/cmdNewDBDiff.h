@@ -21,19 +21,19 @@
  * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
-#ifndef TARGOMAN_MIGRATE_CMDCREATEDBDIFF_H
-#define TARGOMAN_MIGRATE_CMDCREATEDBDIFF_H
+#ifndef TARGOMAN_MIGRATE_CMDNEWDBDIFF_H
+#define TARGOMAN_MIGRATE_CMDNEWDBDIFF_H
 
 #include "../Defs.h"
 #include "intfCommand.h"
 
 namespace Targoman::Migrate::Commands {
 
-class cmdCreateDBDiff : public intfCommand
+class cmdNewDBDiff : public intfCommand
 {
 public:
-    instanceGetterPtr(cmdCreateDBDiff);
-    cmdCreateDBDiff();
+    instanceGetterPtr(cmdNewDBDiff);
+    cmdNewDBDiff();
 
     virtual bool needDB() { return true; }
     virtual void help();
@@ -42,4 +42,4 @@ public:
 
 } // namespace Targoman::Migrate::Commands
 
-#endif // TARGOMAN_MIGRATE_CMDCREATEDBDIFF_H
+#endif // TARGOMAN_MIGRATE_CMDNEWDBDIFF_H

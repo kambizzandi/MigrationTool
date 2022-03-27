@@ -21,25 +21,25 @@
  * @author Kambiz Zandi <kambizzandi@gmail.com>
  */
 
-#ifndef TARGOMAN_MIGRATE_CMDCREATELOCAL_H
-#define TARGOMAN_MIGRATE_CMDCREATELOCAL_H
+#ifndef TARGOMAN_MIGRATE_CMDNEWDB_H
+#define TARGOMAN_MIGRATE_CMDNEWDB_H
 
 #include "../Defs.h"
 #include "intfCommand.h"
 
 namespace Targoman::Migrate::Commands {
 
-class cmdCreateLocal : public intfCommand
+class cmdNewDB : public intfCommand
 {
 public:
-    instanceGetterPtr(cmdCreateLocal);
-    cmdCreateLocal();
+    instanceGetterPtr(cmdNewDB);
+    cmdNewDB();
 
-    virtual bool needDB() { return false; }
+    virtual bool needDB() { return true; }
     virtual void help();
     virtual bool run();
 };
 
 } // namespace Targoman::Migrate::Commands
 
-#endif // TARGOMAN_MIGRATE_CMDCREATELOCAL_H
+#endif // TARGOMAN_MIGRATE_CMDNEWDB_H
