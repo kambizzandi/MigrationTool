@@ -39,9 +39,9 @@ namespace Targoman::Migrate {
 
 TARGOMAN_DEFINE_ENHANCED_ENUM(enuAppCommand,
                               showconf,
-                              createdb,
-                              createdbdiff,
-                              createlocal,
+                              newdb,
+                              newdbdiff,
+                              newlocal,
                               list,
                               history,
                               commit,
